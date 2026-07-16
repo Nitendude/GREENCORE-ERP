@@ -94,7 +94,7 @@ export default function BidFormEditModal({ show, bid, onClose }: BidFormEditModa
             </Col>
             <Col md={4}>
               <Form.Group controlId={`fld-8`}>
-                <Form.Label>Estimated Value (USD)</Form.Label>
+                <Form.Label>Estimated Value (PHP)</Form.Label>
                 <Form.Control type="number" value={form.estimatedValue} onChange={e => setForm(f => ({ ...f, estimatedValue: e.target.value }))} />
               </Form.Group>
             </Col>

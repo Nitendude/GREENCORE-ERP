@@ -192,7 +192,7 @@ export default function ProjectFormModal({ show, project, onClose, onSave }: Pro
             </Col>
             <Col md={4}>
               <Form.Group controlId={`fld-10`}>
-                <Form.Label className="form-required">Contract Value (USD)</Form.Label>
+                <Form.Label className="form-required">Contract Value (PHP)</Form.Label>
                 <Form.Control type="number" min={0} value={form.contractValue} onChange={e => update('contractValue', e.target.value)} isInvalid={!!errors.contractValue} />
                 <Form.Control.Feedback type="invalid">{errors.contractValue}</Form.Control.Feedback>
               </Form.Group>

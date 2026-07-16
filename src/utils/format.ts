@@ -1,17 +1,17 @@
 export function formatCurrency(value: number | undefined | null): string {
   if (value === undefined || value === null || Number.isNaN(value)) return '—';
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('en-PH', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'PHP',
     maximumFractionDigits: 0,
   }).format(value);
 }
 
 export function formatCompactCurrency(value: number | undefined | null): string {
   if (value === undefined || value === null || Number.isNaN(value)) return '—';
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('en-PH', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'PHP',
     notation: 'compact',
     maximumFractionDigits: 1,
   }).format(value);

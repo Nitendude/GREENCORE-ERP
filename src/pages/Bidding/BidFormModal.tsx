@@ -134,7 +134,7 @@ export default function BidFormModal({ show, onClose, onSave }: BidFormModalProp
             </Col>
             <Col md={4}>
               <Form.Group controlId={`fld-8`}>
-                <Form.Label className="form-required">Estimated Value (USD)</Form.Label>
+                <Form.Label className="form-required">Estimated Value (PHP)</Form.Label>
                 <Form.Control type="number" min={0} value={form.estimatedValue} onChange={e => update('estimatedValue', e.target.value)} isInvalid={!!errors.estimatedValue} />
                 <Form.Control.Feedback type="invalid">{errors.estimatedValue}</Form.Control.Feedback>
               </Form.Group>

@@ -92,7 +92,7 @@ export default function ProcurementTab({ project }: { project: Project }) {
               </Col>
               <Col xs={6}>
                 <Form.Group controlId={`fld-3`}>
-                  <Form.Label className="form-required">Amount (USD)</Form.Label>
+                  <Form.Label className="form-required">Amount (PHP)</Form.Label>
                   <Form.Control required type="number" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} />
                 </Form.Group>
               </Col>

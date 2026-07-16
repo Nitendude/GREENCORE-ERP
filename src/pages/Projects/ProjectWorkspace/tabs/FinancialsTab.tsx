@@ -122,7 +122,7 @@ export default function FinancialsTab({ project }: { project: Project }) {
               <Form.Control required value={form.title} onChange={e => setForm(f2 => ({ ...f2, title: e.target.value }))} />
             </Form.Group>
             <Form.Group controlId={`fld-2`}>
-              <Form.Label className="form-required">Amount (USD)</Form.Label>
+              <Form.Label className="form-required">Amount (PHP)</Form.Label>
               <Form.Control required type="number" value={form.amount} onChange={e => setForm(f2 => ({ ...f2, amount: e.target.value }))} />
             </Form.Group>
           </Modal.Body>
