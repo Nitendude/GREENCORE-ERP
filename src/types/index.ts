@@ -122,6 +122,75 @@ export interface ProjectDocument {
   sizeKb: number;
 }
 
+export interface CadVersionEntry {
+  version: string;
+  date: string;
+  uploadedBy: string;
+  notes?: string;
+}
+
+export interface CadComment {
+  id: ID;
+  author: string;
+  body: string;
+  createdAt: string;
+}
+
+export interface CadThread {
+  id: ID;
+  page: number;
+  x: number; // Normalized 0-1 document coordinate
+  y: number; // Normalized 0-1 document coordinate
+  title: string;
+  status: 'Open' | 'Resolved';
+  comments: CadComment[];
+}
+
+export interface CadMarkup {
+  id: ID;
+  page?: number;
+  type: 'line' | 'rectangle' | 'measure';
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  color: string;
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface CadReviewEvent {
+  id: ID;
+  action: 'Review saved' | 'Submitted' | 'Reopened';
+  user: string;
+  timestamp: string;
+  details?: string;
+}
+
+export interface CadFile {
+  id: ID;
+  projectId: ID;
+  name: string;
+  discipline: 'Architectural' | 'Structural' | 'Mechanical' | 'Electrical' | 'Plumbing' | 'Civil' | 'Landscape';
+  fileType: 'DWG' | 'DXF' | 'RVT' | 'IFC' | 'PDF';
+  version: string;
+  uploadedBy: string;
+  uploadedDate: string;
+  approvalStatus: 'Pending' | 'Approved' | 'Rejected';
+  layers: string[];
+  sizeKb: number;
+  versionHistory: CadVersionEntry[];
+  sheet?: string;
+  units?: 'Millimeters' | 'Centimeters' | 'Meters' | 'Inches' | 'Feet';
+  reviewStatus?: 'Draft' | 'In Review' | 'Ready to Submit' | 'Submitted';
+  submissionTarget?: 'Client' | 'Bidding Requirements';
+  submittedAt?: string;
+  submittedBy?: string;
+  threads?: CadThread[];
+  markups?: CadMarkup[];
+  reviewHistory?: CadReviewEvent[];
+}
+
 export interface FinancialSummary {
   contractValue: number;
   approvedBudget: number;

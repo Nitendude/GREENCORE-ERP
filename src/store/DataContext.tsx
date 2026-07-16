@@ -1,11 +1,12 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import type {
-  Project, Bid, User, ProjectTask, ProjectDocument, PurchaseOrder, MaterialItem,
+  Project, Bid, User, ProjectTask, ProjectDocument, CadFile, PurchaseOrder, MaterialItem,
   IssueRisk, DailyLog, Notification, AuditEntry, StatusHistoryEntry, ProjectStatus, BidStage, ID,
 } from '../types';
 import { seedDatabase, genId } from '../data/seed';
 
-const STORAGE_KEY = 'greencore-erp-db-v1';
+const STORAGE_KEY = 'greencore-erp-db-v2';
+const LEGACY_STORAGE_KEYS = ['greencore-erp-db-v1'];
 
 interface DB {
   users: User[];
@@ -13,6 +14,7 @@ interface DB {
   bids: Bid[];
   tasks: ProjectTask[];
   documents: ProjectDocument[];
+  cadFiles: CadFile[];
   purchaseOrders: PurchaseOrder[];
   materials: MaterialItem[];
   issues: IssueRisk[];
@@ -22,13 +24,47 @@ interface DB {
 }
 
 function loadDB(): DB {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw) as DB;
-  } catch {
-    // fall through to seed
+  const seed = seedDatabase();
+  for (const key of [STORAGE_KEY, ...LEGACY_STORAGE_KEYS]) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+
+      const saved = JSON.parse(raw) as Partial<DB>;
+      return {
+        users: Array.isArray(saved.users) ? saved.users : seed.users,
+        projects: Array.isArray(saved.projects) ? saved.projects : seed.projects,
+        bids: Array.isArray(saved.bids) ? saved.bids : seed.bids,
+        tasks: Array.isArray(saved.tasks) ? saved.tasks : seed.tasks,
+        documents: Array.isArray(saved.documents) ? saved.documents : seed.documents,
+        cadFiles: Array.isArray(saved.cadFiles) ? saved.cadFiles.map(file => {
+          const seededFile = seed.cadFiles.find(seedFile => seedFile.id === file.id);
+          if (!seededFile) return file;
+          return {
+            ...file,
+            sheet: file.sheet ?? seededFile.sheet,
+            units: file.units ?? seededFile.units,
+            reviewStatus: file.reviewStatus ?? seededFile.reviewStatus,
+            submissionTarget: file.submissionTarget ?? seededFile.submissionTarget,
+            submittedAt: file.submittedAt ?? seededFile.submittedAt,
+            submittedBy: file.submittedBy ?? seededFile.submittedBy,
+            threads: file.threads ?? seededFile.threads,
+            markups: file.markups ?? seededFile.markups,
+            reviewHistory: file.reviewHistory ?? seededFile.reviewHistory,
+          };
+        }) : seed.cadFiles,
+        purchaseOrders: Array.isArray(saved.purchaseOrders) ? saved.purchaseOrders : seed.purchaseOrders,
+        materials: Array.isArray(saved.materials) ? saved.materials : seed.materials,
+        issues: Array.isArray(saved.issues) ? saved.issues : seed.issues,
+        dailyLogs: Array.isArray(saved.dailyLogs) ? saved.dailyLogs : seed.dailyLogs,
+        notifications: Array.isArray(saved.notifications) ? saved.notifications : seed.notifications,
+        auditLog: Array.isArray(saved.auditLog) ? saved.auditLog : seed.auditLog,
+      };
+    } catch {
+      // Try the next stored version, then fall back to seed data.
+    }
   }
-  return seedDatabase();
+  return seed;
 }
 
 interface DataContextValue extends DB {
@@ -42,6 +78,8 @@ interface DataContextValue extends DB {
   addTask: (task: ProjectTask) => void;
   updateTask: (id: ID, patch: Partial<ProjectTask>) => void;
   addDocument: (doc: ProjectDocument) => void;
+  addCadFile: (file: CadFile) => void;
+  updateCadFile: (id: ID, patch: Partial<CadFile>) => void;
   addPurchaseOrder: (po: PurchaseOrder) => void;
   updatePurchaseOrder: (id: ID, patch: Partial<PurchaseOrder>) => void;
   addIssue: (issue: IssueRisk) => void;
@@ -199,6 +237,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const addDocument = useCallback((doc: ProjectDocument) => {
     setDb(prev => ({ ...prev, documents: [doc, ...prev.documents] }));
   }, []);
+  const addCadFile = useCallback((file: CadFile) => {
+    setDb(prev => ({ ...prev, cadFiles: [file, ...prev.cadFiles] }));
+  }, []);
+  const updateCadFile = useCallback((id: ID, patch: Partial<CadFile>) => {
+    setDb(prev => ({ ...prev, cadFiles: prev.cadFiles.map(f => f.id === id ? { ...f, ...patch } : f) }));
+  }, []);
   const addPurchaseOrder = useCallback((po: PurchaseOrder) => {
     setDb(prev => ({ ...prev, purchaseOrders: [po, ...prev.purchaseOrders] }));
   }, []);
@@ -240,12 +284,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     ...db,
     updateProject, changeProjectStatus, createProject,
     updateBid, changeBidStage, createBid, convertBidToProject,
-    addTask, updateTask, addDocument, addPurchaseOrder, updatePurchaseOrder,
+    addTask, updateTask, addDocument, addCadFile, updateCadFile, addPurchaseOrder, updatePurchaseOrder,
     addIssue, updateIssue, addDailyLog,
     markNotificationRead, markAllNotificationsRead, logAudit, resetToSeed,
     addUser, updateUser,
   }), [db, updateProject, changeProjectStatus, createProject, updateBid, changeBidStage, createBid,
-      convertBidToProject, addTask, updateTask, addDocument, addPurchaseOrder, updatePurchaseOrder,
+      convertBidToProject, addTask, updateTask, addDocument, addCadFile, updateCadFile, addPurchaseOrder, updatePurchaseOrder,
       addIssue, updateIssue, addDailyLog, markNotificationRead, markAllNotificationsRead, logAudit, resetToSeed,
       addUser, updateUser]);
 

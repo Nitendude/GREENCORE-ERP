@@ -1,5 +1,5 @@
 import type {
-  Project, Bid, User, Notification, ProjectTask, ProjectDocument,
+  Project, Bid, User, Notification, ProjectTask, ProjectDocument, CadFile,
   PurchaseOrder, MaterialItem, IssueRisk, DailyLog, AuditEntry,
 } from '../types';
 import { genId } from '../utils/format';
@@ -268,6 +268,104 @@ export const DOCUMENTS: ProjectDocument[] = [
   { id: 'doc8', projectId: 'p2', name: 'RF Shielding Change Order Backup.pdf', category: 'Billing', version: '1.0', uploadedBy: 'Priya Nair', uploadedDate: d(-55), approvalStatus: 'Approved', sizeKb: 980 },
   { id: 'doc9', projectId: 'p3', name: 'Board Resolution - Contract Award.pdf', category: 'Contract', version: '1.0', uploadedBy: 'David Reyes', uploadedDate: d(-18), approvalStatus: 'Approved', sizeKb: 340 },
   { id: 'doc10', projectId: 'p6', name: 'Fire/Life Safety Final Inspection Checklist.pdf', category: 'Report', version: '2.0', uploadedBy: 'Priya Nair', uploadedDate: d(-2), approvalStatus: 'Pending', sizeKb: 220 },
+];
+
+// ---------- CAD Files ----------
+export const CAD_FILES: CadFile[] = [
+  {
+    id: 'cad1', projectId: 'p1', name: 'Site Plan - Overall Layout.dwg', discipline: 'Civil', fileType: 'DWG',
+    version: '3', uploadedBy: 'David Reyes', uploadedDate: d(-95), approvalStatus: 'Approved', sizeKb: 8420,
+    sheet: 'C-101', units: 'Millimeters', reviewStatus: 'In Review',
+    layers: ['Grid', 'Site Boundary', 'Building Footprint', 'Utilities', 'Paving', 'Dimensions'],
+    threads: [
+      {
+        id: 'thread-seed-1', page: 1, x: 0.67, y: 0.38, title: 'Confirm fire lane clearance', status: 'Open',
+        comments: [
+          { id: 'comment-seed-1', author: 'David Reyes', body: 'Please confirm the fire lane maintains the required clear width beside the loading court.', createdAt: d(-3) },
+          { id: 'comment-seed-2', author: 'Ben Torres', body: 'Checking this against the latest civil notes and turning template.', createdAt: d(-2) },
+        ],
+      },
+      {
+        id: 'thread-seed-2', page: 1, x: 0.31, y: 0.71, title: 'Utility conflict coordinated', status: 'Resolved',
+        comments: [{ id: 'comment-seed-3', author: 'David Reyes', body: 'Storm line alignment updated to clear the footing. Resolved in Rev 3.', createdAt: d(-7) }],
+      },
+    ],
+    markups: [
+      { id: 'markup-seed-1', page: 1, type: 'rectangle', x1: 0.57, y1: 0.27, x2: 0.77, y2: 0.49, color: '#ff6b73', createdBy: 'David Reyes', createdAt: d(-3) },
+      { id: 'markup-seed-2', page: 1, type: 'measure', x1: 0.22, y1: 0.64, x2: 0.42, y2: 0.64, color: '#ff6b73', createdBy: 'David Reyes', createdAt: d(-3) },
+    ],
+    reviewHistory: [{ id: 'review-seed-1', action: 'Review saved', user: 'David Reyes', timestamp: d(-3), details: 'Coordination review with civil and structural teams' }],
+    versionHistory: [
+      { version: '1', date: d(-140), uploadedBy: 'David Reyes', notes: 'Initial site layout' },
+      { version: '2', date: d(-112), uploadedBy: 'David Reyes', notes: 'Revised dock door count' },
+      { version: '3', date: d(-95), uploadedBy: 'David Reyes', notes: 'Added yard lighting layout' },
+    ],
+  },
+  {
+    id: 'cad2', projectId: 'p1', name: 'Structural Framing Plan - Level 1.dwg', discipline: 'Structural', fileType: 'DWG',
+    version: '2', uploadedBy: 'Ben Torres', uploadedDate: d(-80), approvalStatus: 'Approved', sizeKb: 12100,
+    sheet: 'S-201', units: 'Millimeters', reviewStatus: 'Submitted', submissionTarget: 'Client', submittedAt: d(-70), submittedBy: 'David Reyes',
+    layers: ['Grid', 'Columns', 'Beams', 'Purlins', 'Dimensions', 'Notes'],
+    threads: [], markups: [],
+    reviewHistory: [{ id: 'review-seed-2', action: 'Submitted', user: 'David Reyes', timestamp: d(-70), details: 'Submitted to Client' }],
+    versionHistory: [
+      { version: '1', date: d(-102), uploadedBy: 'Ben Torres', notes: 'Initial framing plan' },
+      { version: '2', date: d(-80), uploadedBy: 'Ben Torres', notes: 'Updated purlin spacing per erection review' },
+    ],
+  },
+  {
+    id: 'cad3', projectId: 'p1', name: 'Office Annex - Electrical Rough-In.rvt', discipline: 'Electrical', fileType: 'RVT',
+    version: '1', uploadedBy: 'Ben Torres', uploadedDate: d(-6), approvalStatus: 'Pending', sizeKb: 24300,
+    layers: ['Grid', 'Panel Boards', 'Conduit Runs', 'Lighting', 'Fire Alarm', 'Dimensions'],
+    versionHistory: [
+      { version: '1', date: d(-6), uploadedBy: 'Ben Torres', notes: 'Coordinated with dock leveler PO' },
+    ],
+  },
+  {
+    id: 'cad4', projectId: 'p2', name: 'Imaging Suite - RF Shielding Layout.dwg', discipline: 'Architectural', fileType: 'DWG',
+    version: '4', uploadedBy: 'Priya Nair', uploadedDate: d(-48), approvalStatus: 'Approved', sizeKb: 9870,
+    layers: ['Grid', 'Walls', 'Shielding Panels', 'Doors', 'Dimensions', 'Notes'],
+    versionHistory: [
+      { version: '3', date: d(-58), uploadedBy: 'Priya Nair', notes: 'Original shielding layout' },
+      { version: '4', date: d(-48), uploadedBy: 'Priya Nair', notes: 'Added second shielding layer per change order' },
+    ],
+  },
+  {
+    id: 'cad5', projectId: 'p2', name: 'Level 3 - MEP Coordination Model.ifc', discipline: 'Mechanical', fileType: 'IFC',
+    version: '2', uploadedBy: 'Priya Nair', uploadedDate: d(-20), approvalStatus: 'Approved', sizeKb: 41200,
+    layers: ['Grid', 'Ductwork', 'Piping', 'Electrical Conduit', 'Structure', 'Clash Markers'],
+    versionHistory: [
+      { version: '1', date: d(-40), uploadedBy: 'Priya Nair', notes: 'Initial coordination model' },
+      { version: '2', date: d(-20), uploadedBy: 'Priya Nair', notes: 'Resolved 12 clashes with structural steel' },
+    ],
+  },
+  {
+    id: 'cad6', projectId: 'p3', name: 'Classroom Wing A - Floor Plan.dwg', discipline: 'Architectural', fileType: 'DWG',
+    version: '2', uploadedBy: 'David Reyes', uploadedDate: d(-9), approvalStatus: 'Pending', sizeKb: 6540,
+    layers: ['Grid', 'Walls', 'Doors & Windows', 'Furniture', 'Dimensions'],
+    versionHistory: [
+      { version: '1', date: d(-16), uploadedBy: 'David Reyes', notes: 'Permit submission set' },
+      { version: '2', date: d(-9), uploadedBy: 'David Reyes', notes: 'Accessibility upgrade revisions' },
+    ],
+  },
+  {
+    id: 'cad7', projectId: 'p5', name: 'Truck Court - Paving & Drainage Plan.dwg', discipline: 'Civil', fileType: 'DWG',
+    version: '3', uploadedBy: 'David Reyes', uploadedDate: d(-4), approvalStatus: 'Pending', sizeKb: 7320,
+    layers: ['Grid', 'Paving', 'Drainage', 'Striping', 'Dimensions'],
+    versionHistory: [
+      { version: '1', date: d(-55), uploadedBy: 'David Reyes', notes: 'Original truck court design' },
+      { version: '2', date: d(-30), uploadedBy: 'David Reyes', notes: 'Client-requested redesign draft' },
+      { version: '3', date: d(-4), uploadedBy: 'David Reyes', notes: 'Resubmission for permit amendment' },
+    ],
+  },
+  {
+    id: 'cad8', projectId: 'p6', name: 'Clubhouse - Landscape Plan.dwg', discipline: 'Landscape', fileType: 'DWG',
+    version: '1', uploadedBy: 'Priya Nair', uploadedDate: d(-40), approvalStatus: 'Approved', sizeKb: 5210,
+    layers: ['Grid', 'Planting Beds', 'Hardscape', 'Irrigation', 'Dimensions'],
+    versionHistory: [
+      { version: '1', date: d(-40), uploadedBy: 'Priya Nair', notes: 'Final landscape design' },
+    ],
+  },
 ];
 
 // ---------- Purchase Orders ----------
@@ -665,6 +763,7 @@ export const seedDatabase = () => ({
   bids: cloneSeed(BIDS),
   tasks: cloneSeed(TASKS),
   documents: cloneSeed(DOCUMENTS),
+  cadFiles: cloneSeed(CAD_FILES),
   purchaseOrders: cloneSeed(PURCHASE_ORDERS),
   materials: cloneSeed(MATERIALS),
   issues: cloneSeed(ISSUES),

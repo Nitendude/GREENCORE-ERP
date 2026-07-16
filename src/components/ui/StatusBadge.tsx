@@ -38,6 +38,8 @@ const STATUS_MAP: Record<string, { variant: string; icon: string }> = {
   Ordered: { variant: 'primary', icon: 'bi-box-seam' },
   Delivered: { variant: 'success', icon: 'bi-check-circle' },
   Draft: { variant: 'secondary', icon: 'bi-pencil' },
+  'In Review': { variant: 'warning', icon: 'bi-chat-square-text' },
+  'Ready to Submit': { variant: 'info', icon: 'bi-send-check' },
   Open: { variant: 'danger', icon: 'bi-exclamation-circle' },
   Mitigated: { variant: 'info', icon: 'bi-shield-check' },
   // Health / priority

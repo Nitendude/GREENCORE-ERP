@@ -15,6 +15,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Bidding', to: '/bidding', icon: 'bi-briefcase', permission: 'nav.bidding' },
   { label: 'Tasks', to: '/tasks', icon: 'bi-check2-square', permission: 'nav.tasks' },
   { label: 'Documents', to: '/documents', icon: 'bi-folder2-open', permission: 'nav.documents' },
+  { label: 'CAD', to: '/cad', icon: 'bi-vector-pen', permission: 'nav.cad' },
   { label: 'Financials', to: '/financials', icon: 'bi-cash-coin', permission: 'nav.financials' },
   { label: 'Procurement', to: '/procurement', icon: 'bi-cart-check', permission: 'nav.procurement' },
   { label: 'Materials', to: '/inventory', icon: 'bi-box-seam', permission: 'nav.inventory' },

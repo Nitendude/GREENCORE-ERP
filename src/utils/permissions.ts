@@ -12,6 +12,7 @@ export type Permission =
   | 'bidding.convert'
   | 'documents.upload'
   | 'documents.delete'
+  | 'cad.upload'
   | 'procurement.view'
   | 'procurement.manage'
   | 'inventory.view'
@@ -23,6 +24,7 @@ export type Permission =
   | 'nav.bidding'
   | 'nav.tasks'
   | 'nav.documents'
+  | 'nav.cad'
   | 'nav.financials'
   | 'nav.procurement'
   | 'nav.inventory'
@@ -31,7 +33,7 @@ export type Permission =
   | 'nav.settings';
 
 const ALL_NAV: Permission[] = [
-  'nav.dashboard', 'nav.projects', 'nav.bidding', 'nav.tasks', 'nav.documents',
+  'nav.dashboard', 'nav.projects', 'nav.bidding', 'nav.tasks', 'nav.documents', 'nav.cad',
   'nav.financials', 'nav.procurement', 'nav.inventory', 'nav.reports', 'nav.users', 'nav.settings',
 ];
 
@@ -40,21 +42,21 @@ const matrix: Record<Role, Permission[]> = {
     ...ALL_NAV,
     'projects.view', 'projects.create', 'projects.edit', 'projects.financials.view',
     'bidding.view', 'bidding.manage', 'bidding.estimate.edit', 'bidding.approve', 'bidding.convert',
-    'documents.upload', 'documents.delete', 'procurement.view', 'procurement.manage',
+    'documents.upload', 'documents.delete', 'cad.upload', 'procurement.view', 'procurement.manage',
     'inventory.view', 'users.manage', 'settings.manage', 'reports.export',
   ],
   Management: [
-    'nav.dashboard', 'nav.projects', 'nav.bidding', 'nav.tasks', 'nav.documents',
+    'nav.dashboard', 'nav.projects', 'nav.bidding', 'nav.tasks', 'nav.documents', 'nav.cad',
     'nav.financials', 'nav.procurement', 'nav.inventory', 'nav.reports', 'nav.users',
     'projects.view', 'projects.create', 'projects.edit', 'projects.financials.view',
     'bidding.view', 'bidding.manage', 'bidding.approve', 'bidding.convert',
     'documents.upload', 'procurement.view', 'inventory.view', 'reports.export',
   ],
   'Project Manager': [
-    'nav.dashboard', 'nav.projects', 'nav.bidding', 'nav.tasks', 'nav.documents',
+    'nav.dashboard', 'nav.projects', 'nav.bidding', 'nav.tasks', 'nav.documents', 'nav.cad',
     'nav.financials', 'nav.procurement', 'nav.inventory', 'nav.reports',
     'projects.view', 'projects.create', 'projects.edit', 'projects.financials.view',
-    'bidding.view', 'documents.upload', 'documents.delete', 'procurement.view',
+    'bidding.view', 'documents.upload', 'documents.delete', 'cad.upload', 'procurement.view',
     'procurement.manage', 'inventory.view', 'reports.export',
   ],
   'Bidding Manager': [
@@ -75,8 +77,8 @@ const matrix: Record<Role, Permission[]> = {
     'projects.view', 'procurement.view', 'procurement.manage', 'inventory.view', 'reports.export',
   ],
   'Project Staff': [
-    'nav.dashboard', 'nav.projects', 'nav.tasks', 'nav.documents',
-    'projects.view', 'documents.upload',
+    'nav.dashboard', 'nav.projects', 'nav.tasks', 'nav.documents', 'nav.cad',
+    'projects.view', 'documents.upload', 'cad.upload',
   ],
   Viewer: [
     'nav.dashboard', 'nav.projects', 'nav.bidding', 'nav.reports',

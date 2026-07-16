@@ -11,6 +11,7 @@ import DataTable, { type Column } from '../../components/ui/DataTable';
 import StatusBadge from '../../components/ui/StatusBadge';
 import EmptyState from '../../components/ui/EmptyState';
 import ProjectFormModal from './ProjectFormModal';
+import ProjectProgressModal from './ProjectProgressModal';
 import { useData } from '../../store/DataContext';
 import { useAuth } from '../../store/AuthContext';
 import { formatCurrency, formatDate } from '../../utils/format';
@@ -39,6 +40,7 @@ export default function ProjectsList() {
   const [sortBy, setSortBy] = useState('updated');
   const [view, setView] = useState<'table' | 'card'>('table');
   const [showForm, setShowForm] = useState(false);
+  const [progressProject, setProgressProject] = useState<Project | null>(null);
 
   const projectManagers = Array.from(new Set(projects.map(p => p.projectManager))).sort();
 
@@ -82,10 +84,16 @@ export default function ProjectsList() {
     { key: 'pm', label: 'Project Manager', accessor: p => p.projectManager },
     { key: 'dates', label: 'Start → Target', render: p => <span className="small">{formatDate(p.startDate)} → {formatDate(p.targetCompletionDate)}</span> },
     { key: 'progress', label: 'Progress', sortable: true, accessor: p => p.progress, render: p => (
-      <div style={{ minWidth: 90 }}>
+      <button
+        type="button"
+        className="btn btn-link p-0 text-decoration-none d-block"
+        style={{ minWidth: 90 }}
+        title="View progress details"
+        onClick={e => { e.stopPropagation(); setProgressProject(p); }}
+      >
         <div className="workspace-progress-track mb-1"><div className="workspace-progress-fill" style={{ width: `${p.progress}%` }} /></div>
         <span className="small text-secondary">{p.progress}%</span>
-      </div>
+      </button>
     ) },
     { key: 'status', label: 'Status', render: p => <StatusBadge status={p.status} /> },
     { key: 'priority', label: 'Priority', render: p => <StatusBadge status={p.priority} /> },
@@ -167,11 +175,18 @@ export default function ProjectsList() {
                   </div>
                   <Card.Title as="h6" className="mb-1">{p.name}</Card.Title>
                   <div className="text-secondary small mb-2">{p.client} • {p.location}</div>
-                  <div className="workspace-progress-track mb-1"><div className="workspace-progress-fill" style={{ width: `${p.progress}%` }} /></div>
-                  <div className="d-flex justify-content-between align-items-center mb-2">
-                    <span className="small text-secondary">{p.progress}% complete</span>
-                    <StatusBadge status={p.status} />
-                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-link p-0 text-decoration-none d-block w-100 text-start"
+                    title="View progress details"
+                    onClick={e => { e.stopPropagation(); setProgressProject(p); }}
+                  >
+                    <div className="workspace-progress-track mb-1"><div className="workspace-progress-fill" style={{ width: `${p.progress}%` }} /></div>
+                    <div className="d-flex justify-content-between align-items-center mb-2">
+                      <span className="small text-secondary">{p.progress}% complete <i className="bi bi-info-circle" /></span>
+                      <StatusBadge status={p.status} />
+                    </div>
+                  </button>
                   <div className="small text-secondary">PM: {p.projectManager}</div>
                   <div className="small text-secondary">{formatDate(p.startDate)} → {formatDate(p.targetCompletionDate)}</div>
                   {can('projects.financials.view') && <div className="small fw-semibold mt-1">{formatCurrency(p.contractValue)}</div>}
@@ -181,6 +196,12 @@ export default function ProjectsList() {
           ))}
         </Row>
       )}
+
+      <ProjectProgressModal
+        show={progressProject !== null}
+        project={progressProject}
+        onClose={() => setProgressProject(null)}
+      />
 
       <ProjectFormModal
         show={showForm}

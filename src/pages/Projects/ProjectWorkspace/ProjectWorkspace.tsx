@@ -8,6 +8,8 @@ import StatusBadge from '../../../components/ui/StatusBadge';
 import ConfirmModal from '../../../components/ui/ConfirmModal';
 import EmptyState from '../../../components/ui/EmptyState';
 import ProjectFormModal from '../ProjectFormModal';
+import ProjectProgressModal from '../ProjectProgressModal';
+import ShareClientPortalModal from '../ShareClientPortalModal';
 import { useData } from '../../../store/DataContext';
 import { useAuth } from '../../../store/AuthContext';
 import { formatCurrency, formatDate } from '../../../utils/format';
@@ -48,6 +50,8 @@ export default function ProjectWorkspace() {
   const { projects, changeProjectStatus, updateProject } = useData();
   const { can, currentUser } = useAuth();
   const [showEdit, setShowEdit] = useState(false);
+  const [showProgress, setShowProgress] = useState(false);
+  const [showShare, setShowShare] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<ProjectStatus | null>(null);
 
   const project = projects.find(p => p.id === projectId);
@@ -131,24 +135,32 @@ export default function ProjectWorkspace() {
                     {s}
                   </Dropdown.Item>
                 ))}
+                <Dropdown.Divider />
+                <Dropdown.Item onClick={() => setShowShare(true)}>
+                  <i className="bi bi-share me-2" /> Share Client Portal
+                </Dropdown.Item>
                 {project.sourceBidId && (
-                  <>
-                    <Dropdown.Divider />
-                    <Dropdown.Item onClick={() => navigate(`/bidding/${project.sourceBidId}/overview`)}>
-                      <i className="bi bi-briefcase me-2" /> View Source Bid
-                    </Dropdown.Item>
-                  </>
+                  <Dropdown.Item onClick={() => navigate(`/bidding/${project.sourceBidId}/overview`)}>
+                    <i className="bi bi-briefcase me-2" /> View Source Bid
+                  </Dropdown.Item>
                 )}
               </Dropdown.Menu>
             </Dropdown>
           </div>
         </div>
         <div className="mt-3">
-          <div className="d-flex justify-content-between small text-secondary mb-1">
-            <span>Overall Progress</span>
-            <span>{project.progress}%</span>
-          </div>
-          <div className="workspace-progress-track"><div className="workspace-progress-fill" style={{ width: `${project.progress}%` }} /></div>
+          <button
+            type="button"
+            className="btn btn-link p-0 text-decoration-none d-block w-100 text-start"
+            onClick={() => setShowProgress(true)}
+            title="View progress details"
+          >
+            <div className="d-flex justify-content-between small text-secondary mb-1">
+              <span>Overall Progress <i className="bi bi-info-circle ms-1" /></span>
+              <span>{project.progress}%</span>
+            </div>
+            <div className="workspace-progress-track"><div className="workspace-progress-fill" style={{ width: `${project.progress}%` }} /></div>
+          </button>
         </div>
       </div>
 
@@ -180,6 +192,9 @@ export default function ProjectWorkspace() {
           setShowEdit(false);
         }}
       />
+
+      <ProjectProgressModal show={showProgress} project={project} onClose={() => setShowProgress(false)} />
+      <ShareClientPortalModal show={showShare} project={project} onClose={() => setShowShare(false)} />
 
       <ConfirmModal
         show={pendingStatus !== null}
