@@ -56,7 +56,7 @@ export default function CadPage() {
     const id = genId('cad');
     const today = new Date().toISOString().slice(0, 10);
     try {
-      await saveCadPdf(id, uploadFile);
+      await saveCadPdf(id, uploadFile, '1');
       const newFile: CadFile = {
         id,
         projectId: form.projectId,

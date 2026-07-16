@@ -37,9 +37,9 @@ export default function ClientPortal() {
     .filter(file => file.projectId === project.id && file.reviewStatus === 'Submitted' && file.submissionTarget === 'Client')
     .sort((a, b) => (b.submittedAt ?? b.uploadedDate).localeCompare(a.submittedAt ?? a.uploadedDate));
 
-  const openSharedPdf = async (id: string) => {
+  const openSharedPdf = async (id: string, version: string) => {
     const pdfWindow = window.open('about:blank', '_blank');
-    const pdf = await loadCadPdf(id);
+    const pdf = await loadCadPdf(id, version);
     if (!pdf) {
       pdfWindow?.close();
       return;
@@ -146,7 +146,7 @@ export default function ClientPortal() {
                 <div className="table-responsive">
                   <table className="table table-sm align-middle mb-0">
                     <thead><tr><th>Drawing</th><th>Discipline</th><th>Revision</th><th>Submitted</th><th /></tr></thead>
-                    <tbody>{sharedDesigns.map(file => <tr key={file.id}><td className="fw-semibold"><i className="bi bi-file-earmark-check text-success me-2" />{file.name}</td><td>{file.discipline}</td><td>{file.version}</td><td>{formatDate(file.submittedAt ?? file.uploadedDate)}</td><td className="text-end">{file.fileType === 'PDF' && <Button size="sm" variant="outline-primary" onClick={() => openSharedPdf(file.id)}>Open PDF</Button>}</td></tr>)}</tbody>
+                    <tbody>{sharedDesigns.map(file => <tr key={file.id}><td className="fw-semibold"><i className="bi bi-file-earmark-check text-success me-2" />{file.name}</td><td>{file.discipline}</td><td>{file.version}</td><td>{formatDate(file.submittedAt ?? file.uploadedDate)}</td><td className="text-end">{file.fileType === 'PDF' && <Button size="sm" variant="outline-primary" onClick={() => openSharedPdf(file.id, file.version)}>Open PDF</Button>}</td></tr>)}</tbody>
                   </table>
                 </div>
               )}

@@ -397,6 +397,17 @@ a { color: var(--gc-primary); }
 .cad-review-history span { display: flex; flex-direction: column; min-width: 0; }
 .cad-review-history strong { font-size: .77rem; }
 .cad-review-history small { color: #7893a7; font-size: .68rem; }
+.cad-version-list { display: flex; flex-direction: column; gap: .45rem; }
+.cad-version-list button {
+  display: flex; align-items: center; justify-content: space-between; gap: .75rem; width: 100%; padding: .65rem .7rem;
+  border: 1px solid var(--cad-border); border-radius: 8px; color: #c9dbe7; background: var(--cad-panel-deep); text-align: left;
+}
+.cad-version-list button:hover { border-color: #4f94c2; }
+.cad-version-list button.active { border-color: #62b8e8; background: rgba(52, 128, 179, .18); }
+.cad-version-list button span { display: flex; flex-direction: column; min-width: 0; }
+.cad-version-list button strong { color: #fff; font-size: .77rem; }
+.cad-version-list button small { color: #7893a7; font-size: .67rem; }
+.cad-version-list button i { color: #62b8e8; }
 .cad-properties { display: grid; grid-template-columns: 1fr auto; gap: .75rem 1rem; margin: 0; font-size: .77rem; }
 .cad-properties dt { color: #7fa0b8; }
 .cad-properties dd { margin: 0; color: #fff; text-align: right; }

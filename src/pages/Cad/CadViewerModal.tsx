@@ -5,7 +5,7 @@ import Form from 'react-bootstrap/Form';
 import Badge from 'react-bootstrap/Badge';
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { generateLayerShapes, BLUEPRINT_CANVAS_SIZE } from '../../utils/blueprint';
-import { loadCadPdf } from '../../utils/cadFileStorage';
+import { loadCadPdf, saveCadPdf } from '../../utils/cadFileStorage';
 import { formatDate, genId } from '../../utils/format';
 import { useData } from '../../store/DataContext';
 import { useAuth } from '../../store/AuthContext';
@@ -13,6 +13,12 @@ import type { CadFile, CadMarkup, CadReviewEvent, CadThread } from '../../types'
 
 const LAYER_COLORS = ['#68b9e8', '#ffd166', '#8bd3c7', '#ff6b73', '#9d8df1', '#9ad35b', '#ff9f43', '#c7d6e5'];
 type ReviewTool = 'pan' | 'select' | 'line' | 'rectangle' | 'measure' | 'pin' | 'comment';
+
+function nextRevision(version: string): string {
+  if (/^\d+$/.test(version)) return String(Number(version) + 1);
+  if (/^[A-Z]$/i.test(version) && version.toUpperCase() !== 'Z') return String.fromCharCode(version.toUpperCase().charCodeAt(0) + 1);
+  return `${version}.1`;
+}
 
 const TOOLS: { id: ReviewTool; label: string; icon: string }[] = [
   { id: 'pan', label: 'Pan', icon: 'bi-hand-index-thumb' },
@@ -36,6 +42,7 @@ export default function CadViewerModal({ show, file, projectName, onClose }: Cad
   const { currentUser } = useAuth();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
+  const revisionInputRef = useRef<HTMLInputElement>(null);
   const [zoom, setZoom] = useState(0.74);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
@@ -53,6 +60,9 @@ export default function CadViewerModal({ show, file, projectName, onClose }: Cad
   const [replyBody, setReplyBody] = useState('');
   const [submissionTarget, setSubmissionTarget] = useState<CadFile['submissionTarget']>('Client');
   const [reviewStatus, setReviewStatus] = useState<CadFile['reviewStatus']>('Draft');
+  const [currentVersion, setCurrentVersion] = useState(file?.version ?? '1');
+  const [versionHistory, setVersionHistory] = useState(file?.versionHistory ?? []);
+  const [uploadingRevision, setUploadingRevision] = useState(false);
   const [drawingStart, setDrawingStart] = useState<{ x: number; y: number } | null>(null);
   const [docSize, setDocSize] = useState({ width: BLUEPRINT_CANVAS_SIZE, height: BLUEPRINT_CANVAS_SIZE * 0.75 });
   const [currentPage, setCurrentPage] = useState(1);
@@ -65,6 +75,7 @@ export default function CadViewerModal({ show, file, projectName, onClose }: Cad
   const selectedThread = threads.find(thread => thread.id === selectedThreadId) ?? null;
   const hoveredThread = threads.find(thread => thread.id === hoveredThreadId) ?? null;
   const openThreadCount = threads.filter(thread => thread.status === 'Open').length;
+  const latestVersion = versionHistory.at(-1)?.version ?? file?.version ?? currentVersion;
 
   const layerShapes = useMemo(() => {
     if (!file || isPdf) return [];
@@ -93,6 +104,9 @@ export default function CadViewerModal({ show, file, projectName, onClose }: Cad
     setReplyBody('');
     setSubmissionTarget(file.submissionTarget ?? 'Client');
     setReviewStatus(file.reviewStatus ?? 'Draft');
+    setCurrentVersion(file.version);
+    setVersionHistory(file.versionHistory);
+    setUploadingRevision(false);
     setSavedNotice('');
     setDirty(false);
     setDocSize({ width: BLUEPRINT_CANVAS_SIZE, height: BLUEPRINT_CANVAS_SIZE * 0.75 });
@@ -109,7 +123,7 @@ export default function CadViewerModal({ show, file, projectName, onClose }: Cad
     let cancelled = false;
     let cancelRender: (() => void) | undefined;
     setPdfState('loading');
-    loadCadPdf(file.id)
+    loadCadPdf(file.id, currentVersion)
       .then(async blob => {
         if (!blob) {
           if (!cancelled) setPdfState('missing');
@@ -139,7 +153,7 @@ export default function CadViewerModal({ show, file, projectName, onClose }: Cad
       cancelled = true;
       cancelRender?.();
     };
-  }, [show, file, currentPage]);
+  }, [show, file, currentPage, currentVersion]);
 
   if (!file) return null;
 
@@ -269,6 +283,59 @@ export default function CadViewerModal({ show, file, projectName, onClose }: Cad
     setDirty(false);
   };
 
+  const uploadRevision = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const uploaded = event.target.files?.[0];
+    event.target.value = '';
+    if (!uploaded) return;
+    if (uploaded.type !== 'application/pdf' && !uploaded.name.toLowerCase().endsWith('.pdf')) {
+      setSavedNotice('Updated drawing must be a PDF');
+      return;
+    }
+
+    const version = nextRevision(latestVersion);
+    const now = new Date().toISOString();
+    const today = now.slice(0, 10);
+    setUploadingRevision(true);
+    try {
+      await saveCadPdf(file.id, uploaded, version);
+      const revisionEntry = { version, date: today, uploadedBy: currentUser.name, notes: 'Updated drawing uploaded for review verification' };
+      const nextVersions = [...versionHistory, revisionEntry];
+      const nextThreads = threads.map(thread => thread.status === 'Open' ? {
+        ...thread,
+        comments: [...thread.comments, {
+          id: genId('comment'), author: currentUser.name,
+          body: `Revision ${version} uploaded for verification. Please check whether the requested change has been completed before resolving this thread.`,
+          createdAt: now,
+        }],
+      } : thread);
+      const revisionEvent: CadReviewEvent = {
+        id: genId('review'), action: 'Reopened', user: currentUser.name, timestamp: now,
+        details: `Revision ${version} uploaded; ${nextThreads.filter(thread => thread.status === 'Open').length} open thread(s) carried forward`,
+      };
+      const nextHistory = [revisionEvent, ...history];
+      setVersionHistory(nextVersions);
+      setThreads(nextThreads);
+      setHistory(nextHistory);
+      setCurrentVersion(version);
+      setCurrentPage(1);
+      setReviewStatus('In Review');
+      setSelectedThreadId(null);
+      setDirty(false);
+      updateCadFile(file.id, {
+        version, uploadedDate: today, uploadedBy: currentUser.name, sizeKb: Math.max(1, Math.ceil(uploaded.size / 1024)),
+        approvalStatus: 'Pending', reviewStatus: 'In Review', versionHistory: nextVersions,
+        threads: nextThreads, markups, reviewHistory: nextHistory,
+        submissionTarget: undefined, submittedAt: undefined, submittedBy: undefined,
+      });
+      setSavedNotice(`Revision ${version} uploaded — pins and threads retained`);
+      window.setTimeout(() => setSavedNotice(''), 3500);
+    } catch {
+      setSavedNotice('Revision upload failed');
+    } finally {
+      setUploadingRevision(false);
+    }
+  };
+
   const requestClose = () => {
     if (!dirty || window.confirm('Discard unsaved review changes?')) onClose();
   };
@@ -296,12 +363,13 @@ export default function CadViewerModal({ show, file, projectName, onClose }: Cad
         <div className="cad-review-shell">
           <header className="cad-review-header">
             <div className="min-w-0">
-              <div className="cad-review-kicker">DRAWING {file.sheet || file.name.replace(/\.[^.]+$/, '').toUpperCase()} · REV {file.version}</div>
+              <div className="cad-review-kicker">DRAWING {file.sheet || file.name.replace(/\.[^.]+$/, '').toUpperCase()} · REV {currentVersion}{currentVersion !== latestVersion ? ' · PREVIOUS VERSION' : ''}</div>
               <h5 className="mb-0 text-truncate">{file.name}</h5>
               <div className="small text-secondary text-truncate">{projectName} · {file.discipline}</div>
             </div>
             <div className="cad-review-actions">
               {savedNotice && <span className="cad-save-notice"><i className="bi bi-check-circle me-1" />{savedNotice}</span>}
+              {isPdf && <><input ref={revisionInputRef} type="file" accept="application/pdf,.pdf" className="d-none" onChange={uploadRevision} /><Button variant="light" onClick={() => revisionInputRef.current?.click()} disabled={uploadingRevision}><i className="bi bi-upload me-1" />{uploadingRevision ? 'Uploading…' : 'Upload Revision'}</Button></>}
               <Button variant="light" onClick={() => zoomBy(-0.1)} aria-label="Zoom out"><i className="bi bi-dash-lg" /></Button>
               <span className="cad-zoom-label">{Math.round(zoom * 100)}%</span>
               <Button variant="light" onClick={() => zoomBy(0.1)} aria-label="Zoom in"><i className="bi bi-plus-lg" /></Button>
@@ -438,7 +506,7 @@ export default function CadViewerModal({ show, file, projectName, onClose }: Cad
                 <Form.Select size="sm" value={submissionTarget} onChange={event => setSubmissionTarget(event.target.value as CadFile['submissionTarget'])}>
                   <option>Client</option><option>Bidding Requirements</option>
                 </Form.Select>
-                <Button size="sm" variant="primary" onClick={submitDesign} disabled={openThreadCount > 0} title={openThreadCount ? 'Resolve all open threads before submitting' : undefined}><i className="bi bi-send me-1" /> Submit Design</Button>
+                <Button size="sm" variant="primary" onClick={submitDesign} disabled={openThreadCount > 0 || currentVersion !== latestVersion} title={currentVersion !== latestVersion ? 'Return to the latest revision before submitting' : openThreadCount ? 'Resolve all open threads before submitting' : undefined}><i className="bi bi-send me-1" /> Submit Design</Button>
                 {openThreadCount > 0 && <small>Resolve {openThreadCount} open thread{openThreadCount === 1 ? '' : 's'} before submission.</small>}
               </div>
             </section>
@@ -449,8 +517,20 @@ export default function CadViewerModal({ show, file, projectName, onClose }: Cad
             </section>
 
             <section>
+              <h6>DRAWING REVISIONS</h6>
+              <div className="cad-version-list">
+                {[...versionHistory].reverse().map(version => (
+                  <button type="button" key={version.version} className={currentVersion === version.version ? 'active' : ''} onClick={() => { setCurrentVersion(version.version); setCurrentPage(1); }}>
+                    <span><strong>Revision {version.version}</strong><small>{formatDate(version.date)} · {version.uploadedBy}</small></span>
+                    <i className={`bi ${currentVersion === version.version ? 'bi-eye-fill' : 'bi-eye'}`} />
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            <section>
               <h6>PROPERTIES</h6>
-              <dl className="cad-properties"><dt>Discipline</dt><dd>{file.discipline}</dd><dt>Units</dt><dd>{file.units ?? 'Millimeters'}</dd><dt>Sheet</dt><dd>{file.sheet ?? '—'}</dd><dt>Revision</dt><dd>{file.version}</dd><dt>Uploaded</dt><dd>{formatDate(file.uploadedDate)}</dd></dl>
+              <dl className="cad-properties"><dt>Discipline</dt><dd>{file.discipline}</dd><dt>Units</dt><dd>{file.units ?? 'Millimeters'}</dd><dt>Sheet</dt><dd>{file.sheet ?? '—'}</dd><dt>Viewing Revision</dt><dd>{currentVersion}</dd><dt>Latest Revision</dt><dd>{latestVersion}</dd></dl>
             </section>
           </aside>
         </div>
