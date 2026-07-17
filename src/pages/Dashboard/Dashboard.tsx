@@ -17,8 +17,10 @@ const ACTIVE_BID_STAGES = [
 ];
 
 export default function Dashboard() {
-  const { projects, bids, tasks, auditLog } = useData();
-  const { currentUser, can } = useAuth();
+  const { projects: allProjects, bids: allBids, tasks, auditLog } = useData();
+  const { currentUser, can, scopeByBranch, effectiveBranch } = useAuth();
+  const projects = scopeByBranch(allProjects);
+  const bids = scopeByBranch(allBids);
 
   const activeProjects = projects.filter(p => ACTIVE_PROJECT_STATUSES.includes(p.status));
   const atRiskProjects = projects.filter(p =>
@@ -46,7 +48,9 @@ export default function Dashboard() {
     .sort((a, b) => daysUntil(a.submissionDeadline) - daysUntil(b.submissionDeadline))
     .slice(0, 5);
 
+  const scopedProjectIds = new Set(projects.map(p => p.id));
   const tasksNeedingAttention = tasks
+    .filter(t => scopedProjectIds.has(t.projectId))
     .filter(t => t.status === 'Blocked' || (t.status !== 'Completed' && isOverdue(t.dueDate)))
     .slice(0, 6);
 
@@ -60,7 +64,11 @@ export default function Dashboard() {
       <div className="d-flex justify-content-between align-items-end flex-wrap gap-2 mt-2 mb-4">
         <div>
           <h4 className="mb-0 fw-bold">Welcome back, {currentUser.name.split(' ')[0]}</h4>
-          <p className="text-secondary mb-0">Here's what's happening across projects and bids today.</p>
+          <p className="text-secondary mb-0">
+            {effectiveBranch
+              ? <>Viewing the <strong>{effectiveBranch.name}</strong> scope — {effectiveBranch.location}.</>
+              : "Here's what's happening across every branch today."}
+          </p>
         </div>
       </div>
 

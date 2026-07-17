@@ -3,7 +3,7 @@ export type ID = string;
 
 export interface AuditEntry {
   id: ID;
-  entityType: 'project' | 'bid' | 'task' | 'document' | 'purchaseOrder' | 'issue' | 'user';
+  entityType: 'project' | 'bid' | 'task' | 'document' | 'purchaseOrder' | 'issue' | 'user' | 'branch';
   entityId: ID;
   action: string;
   user: string;
@@ -42,6 +42,25 @@ export interface User {
   phone?: string;
   avatarColor: string;
   active: boolean;
+  branchId?: ID;
+}
+
+// ---------- Branches (multi-branch "central system") ----------
+export type BranchType = 'Headquarters' | 'Branch';
+
+export interface Branch {
+  id: ID;
+  name: string;
+  code: string;
+  type: BranchType;
+  location: string;
+  manager: string;
+  email: string;
+  phone: string;
+  established: string;
+  status: 'Active' | 'Inactive';
+  createdAt: string;
+  createdBy: string;
 }
 
 export type Priority = 'Low' | 'Medium' | 'High' | 'Critical';
@@ -299,6 +318,7 @@ export interface Project {
   createdBy: string;
   archived: boolean;
   sourceBidId?: ID;
+  branchId?: ID;
 }
 
 // ---------- Bidding ----------
@@ -438,6 +458,7 @@ export interface Bid {
   convertedProjectId?: ID;
   convertedBy?: string;
   convertedAt?: string;
+  branchId?: ID;
 }
 
 // ---------- Notifications ----------

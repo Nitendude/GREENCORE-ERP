@@ -12,6 +12,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', to: '/dashboard', icon: 'bi-speedometer2', permission: 'nav.dashboard' },
   { label: 'Projects', to: '/projects', icon: 'bi-kanban', permission: 'nav.projects' },
+  { label: 'Gantt Viewer', to: '/gantt', icon: 'bi-bar-chart-steps', permission: 'nav.gantt' },
   { label: 'Bidding', to: '/bidding', icon: 'bi-briefcase', permission: 'nav.bidding' },
   { label: 'Tasks', to: '/tasks', icon: 'bi-check2-square', permission: 'nav.tasks' },
   { label: 'Documents', to: '/documents', icon: 'bi-folder2-open', permission: 'nav.documents' },
@@ -20,6 +21,8 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Procurement', to: '/procurement', icon: 'bi-cart-check', permission: 'nav.procurement' },
   { label: 'Materials', to: '/inventory', icon: 'bi-box-seam', permission: 'nav.inventory' },
   { label: 'Reports', to: '/reports', icon: 'bi-bar-chart-line', permission: 'nav.reports' },
+  { label: 'Branches', to: '/branches', icon: 'bi-diagram-3', permission: 'nav.branches' },
+  { label: 'Access Preview', to: '/access', icon: 'bi-shield-lock', permission: 'nav.access' },
   { label: 'Users', to: '/users', icon: 'bi-people', permission: 'nav.users' },
   { label: 'Settings', to: '/settings', icon: 'bi-gear', permission: 'nav.settings' },
 ];

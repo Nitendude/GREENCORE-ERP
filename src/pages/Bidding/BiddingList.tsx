@@ -30,8 +30,9 @@ const SORT_OPTIONS = [
 ];
 
 export default function BiddingList() {
-  const { bids, createBid } = useData();
-  const { can } = useAuth();
+  const { bids: allBids, createBid } = useData();
+  const { can, scopeByBranch } = useAuth();
+  const bids = scopeByBranch(allBids);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 

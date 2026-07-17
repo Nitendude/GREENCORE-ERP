@@ -1,15 +1,18 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import type {
-  Project, Bid, User, ProjectTask, ProjectDocument, CadFile, PurchaseOrder, MaterialItem,
+  Project, Bid, User, Branch, ProjectTask, ProjectDocument, CadFile, PurchaseOrder, MaterialItem,
   IssueRisk, DailyLog, Notification, AuditEntry, StatusHistoryEntry, ProjectStatus, BidStage, ID,
 } from '../types';
 import { seedDatabase, genId } from '../data/seed';
 
-const STORAGE_KEY = 'greencore-erp-db-v2';
-const LEGACY_STORAGE_KEYS = ['greencore-erp-db-v1'];
+// v3 introduces branches + branchId scoping; older payloads are reseeded so
+// every record carries a branch assignment.
+const STORAGE_KEY = 'greencore-erp-db-v3';
+const LEGACY_STORAGE_KEYS: string[] = [];
 
 interface DB {
   users: User[];
+  branches: Branch[];
   projects: Project[];
   bids: Bid[];
   tasks: ProjectTask[];
@@ -33,6 +36,7 @@ function loadDB(): DB {
       const saved = JSON.parse(raw) as Partial<DB>;
       return {
         users: Array.isArray(saved.users) ? saved.users : seed.users,
+        branches: Array.isArray(saved.branches) ? saved.branches : seed.branches,
         projects: Array.isArray(saved.projects) ? saved.projects : seed.projects,
         bids: Array.isArray(saved.bids) ? saved.bids : seed.bids,
         tasks: Array.isArray(saved.tasks) ? saved.tasks : seed.tasks,
@@ -91,6 +95,8 @@ interface DataContextValue extends DB {
   resetToSeed: () => void;
   addUser: (user: User) => void;
   updateUser: (id: ID, patch: Partial<User>) => void;
+  addBranch: (branch: Branch) => void;
+  updateBranch: (id: ID, patch: Partial<Branch>) => void;
 }
 
 const DataContext = createContext<DataContextValue | undefined>(undefined);
@@ -280,6 +286,18 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     setDb(prev => ({ ...prev, users: prev.users.map(u => u.id === id ? { ...u, ...patch } : u) }));
   }, []);
 
+  const addBranch = useCallback((branch: Branch) => {
+    setDb(prev => ({
+      ...prev,
+      branches: [...prev.branches, branch],
+      auditLog: [{ id: genId('aud'), entityType: 'branch', entityId: branch.id, action: `Branch ${branch.name} (${branch.code}) added to the central system`, user: branch.createdBy, timestamp: new Date().toISOString() }, ...prev.auditLog],
+    }));
+  }, []);
+
+  const updateBranch = useCallback((id: ID, patch: Partial<Branch>) => {
+    setDb(prev => ({ ...prev, branches: prev.branches.map(b => b.id === id ? { ...b, ...patch } : b) }));
+  }, []);
+
   const value = useMemo<DataContextValue>(() => ({
     ...db,
     updateProject, changeProjectStatus, createProject,
@@ -287,11 +305,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     addTask, updateTask, addDocument, addCadFile, updateCadFile, addPurchaseOrder, updatePurchaseOrder,
     addIssue, updateIssue, addDailyLog,
     markNotificationRead, markAllNotificationsRead, logAudit, resetToSeed,
-    addUser, updateUser,
+    addUser, updateUser, addBranch, updateBranch,
   }), [db, updateProject, changeProjectStatus, createProject, updateBid, changeBidStage, createBid,
       convertBidToProject, addTask, updateTask, addDocument, addCadFile, updateCadFile, addPurchaseOrder, updatePurchaseOrder,
       addIssue, updateIssue, addDailyLog, markNotificationRead, markAllNotificationsRead, logAudit, resetToSeed,
-      addUser, updateUser]);
+      addUser, updateUser, addBranch, updateBranch]);
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 }

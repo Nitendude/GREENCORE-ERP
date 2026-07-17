@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
+import PreviewBanner from './PreviewBanner';
 
 export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
@@ -15,6 +16,7 @@ export default function AppLayout() {
           onToggleSidebar={() => setCollapsed(c => !c)}
           onToggleMobileSidebar={() => setMobileOpen(o => !o)}
         />
+        <PreviewBanner />
         <main className="app-content">
           <Outlet />
         </main>

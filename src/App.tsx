@@ -23,6 +23,9 @@ import Forbidden from './pages/Forbidden';
 
 const CadPage = lazy(() => import('./pages/Cad/CadPage'));
 const ClientPortal = lazy(() => import('./pages/ClientPortal/ClientPortal'));
+const PortfolioGantt = lazy(() => import('./pages/Gantt/PortfolioGantt'));
+const BranchesPage = lazy(() => import('./pages/Branches/BranchesPage'));
+const AccessPreviewPage = lazy(() => import('./pages/Access/AccessPreviewPage'));
 
 function App() {
   return (
@@ -38,6 +41,7 @@ function App() {
             <Route path="dashboard" element={<RequirePermission permission="nav.dashboard"><Dashboard /></RequirePermission>} />
 
             <Route path="projects" element={<RequirePermission permission="nav.projects"><ProjectsList /></RequirePermission>} />
+            <Route path="gantt" element={<RequirePermission permission="nav.gantt"><PortfolioGantt /></RequirePermission>} />
             <Route path="projects/:projectId" element={<Navigate to="overview" replace />} />
             <Route path="projects/:projectId/:tab" element={<RequirePermission permission="nav.projects"><ProjectWorkspace /></RequirePermission>} />
 
@@ -52,6 +56,8 @@ function App() {
             <Route path="procurement" element={<RequirePermission permission="nav.procurement"><ProcurementPage /></RequirePermission>} />
             <Route path="inventory" element={<RequirePermission permission="nav.inventory"><InventoryPage /></RequirePermission>} />
             <Route path="reports" element={<RequirePermission permission="nav.reports"><ReportsPage /></RequirePermission>} />
+            <Route path="branches" element={<RequirePermission permission="nav.branches"><BranchesPage /></RequirePermission>} />
+            <Route path="access" element={<RequirePermission permission="nav.access"><AccessPreviewPage /></RequirePermission>} />
             <Route path="users" element={<RequirePermission permission="nav.users"><UsersPage /></RequirePermission>} />
             <Route path="settings" element={<RequirePermission permission="nav.settings"><SettingsPage /></RequirePermission>} />
 

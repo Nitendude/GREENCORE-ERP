@@ -1,5 +1,5 @@
 import type {
-  Project, Bid, User, Notification, ProjectTask, ProjectDocument, CadFile,
+  Project, Bid, User, Branch, Notification, ProjectTask, ProjectDocument, CadFile,
   PurchaseOrder, MaterialItem, IssueRisk, DailyLog, AuditEntry,
 } from '../types';
 import { genId } from '../utils/format';
@@ -11,6 +11,14 @@ function d(offsetDays: number): string {
   dt.setDate(dt.getDate() + offsetDays);
   return dt.toISOString().slice(0, 10);
 }
+
+// ---------- Branches (this ERP instance is the central system / HQ) ----------
+export const BRANCHES: Branch[] = [
+  { id: 'br1', name: 'Greencore HQ — Seattle', code: 'HQ-SEA', type: 'Headquarters', location: 'Seattle, WA', manager: 'Elena Cruz', email: 'hq@greencore.com', phone: '+1 (555) 010-2000', established: '2011-03-01', status: 'Active', createdAt: '2011-03-01T08:00:00', createdBy: 'Miguel Santos' },
+  { id: 'br2', name: 'South Sound Branch', code: 'BR-TAC', type: 'Branch', location: 'Tacoma, WA', manager: 'David Reyes', email: 'southsound@greencore.com', phone: '+1 (555) 010-2100', established: '2016-06-15', status: 'Active', createdAt: '2016-06-15T08:00:00', createdBy: 'Elena Cruz' },
+  { id: 'br3', name: 'Eastside Branch', code: 'BR-BEL', type: 'Branch', location: 'Bellevue, WA', manager: 'Priya Nair', email: 'eastside@greencore.com', phone: '+1 (555) 010-2200', established: '2019-02-01', status: 'Active', createdAt: '2019-02-01T08:00:00', createdBy: 'Elena Cruz' },
+  { id: 'br4', name: 'North Sound Branch', code: 'BR-EVR', type: 'Branch', location: 'Everett, WA', manager: 'David Reyes', email: 'northsound@greencore.com', phone: '+1 (555) 010-2300', established: '2023-09-01', status: 'Active', createdAt: '2023-09-01T08:00:00', createdBy: 'Miguel Santos' },
+];
 
 export const USERS: User[] = [
   { id: 'u1', name: 'Miguel Santos', email: 'miguel.santos@greencore.com', role: 'Administrator', title: 'System Administrator', phone: '+1 (555) 010-1001', avatarColor: '#2f6f4e', active: true },
@@ -753,12 +761,22 @@ export const AUDIT_LOG: AuditEntry[] = [
   { id: 'aud5', entityType: 'bid', entityId: 'b3', action: 'Stage changed from For Approval to Ready for Submission', user: 'Elena Cruz', timestamp: d(-1) + 'T15:00', previousValue: 'For Approval', newValue: 'Ready for Submission' },
 ];
 
+// ---------- Branch assignments ----------
+// Records carry a branchId so the central system can scope what each branch sees.
+const USER_BRANCH: Record<string, string> = { u1: 'br1', u2: 'br1', u3: 'br2', u4: 'br3', u5: 'br1', u6: 'br1', u7: 'br1', u8: 'br1', u9: 'br2', u10: 'br3' };
+const PROJECT_BRANCH: Record<string, string> = { p1: 'br2', p2: 'br3', p3: 'br4', p4: 'br3', p5: 'br2', p6: 'br2' };
+const BID_BRANCH: Record<string, string> = { b1: 'br3', b2: 'br4', b3: 'br2', b4: 'br3', b5: 'br4', b6: 'br2', b7: 'br4', b8: 'br3', b9: 'br4', b10: 'br2' };
+USERS.forEach(user => { user.branchId = USER_BRANCH[user.id] ?? 'br1'; });
+PROJECTS.forEach(project => { project.branchId = PROJECT_BRANCH[project.id] ?? 'br1'; });
+BIDS.forEach(bid => { bid.branchId = BID_BRANCH[bid.id] ?? 'br1'; });
+
 export function cloneSeed<T>(value: T): T {
   return JSON.parse(JSON.stringify(value));
 }
 
 export const seedDatabase = () => ({
   users: cloneSeed(USERS),
+  branches: cloneSeed(BRANCHES),
   projects: cloneSeed(PROJECTS),
   bids: cloneSeed(BIDS),
   tasks: cloneSeed(TASKS),

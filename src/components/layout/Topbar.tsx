@@ -7,6 +7,7 @@ import { useAuth } from '../../store/AuthContext';
 import { useData } from '../../store/DataContext';
 import { formatDateTime } from '../../utils/format';
 import { getNotificationLink } from '../../utils/notificationLink';
+import ViewAsMenu from './ViewAsMenu';
 import type { Role } from '../../types';
 
 const ROLES: Role[] = [
@@ -20,7 +21,7 @@ interface TopbarProps {
 }
 
 export default function Topbar({ onToggleSidebar, onToggleMobileSidebar }: TopbarProps) {
-  const { currentUser, allUsers, switchUser } = useAuth();
+  const { currentUser, allUsers, switchUser, effectiveRole, isPreviewing } = useAuth();
   const { notifications, markNotificationRead, markAllNotificationsRead, tasks, documents, purchaseOrders, projects, bids } = useData();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
@@ -61,6 +62,7 @@ export default function Topbar({ onToggleSidebar, onToggleMobileSidebar }: Topba
       </Form>
 
       <div className="topbar-actions">
+        <ViewAsMenu />
         <Dropdown align="end">
           <Dropdown.Toggle as="button" className="topbar-icon-btn topbar-bell" aria-label="Notifications">
             <i className="bi bi-bell" />
@@ -101,12 +103,14 @@ export default function Topbar({ onToggleSidebar, onToggleMobileSidebar }: Topba
             </span>
             <span className="d-none d-md-flex flex-column align-items-start lh-sm">
               <span className="fw-semibold small">{currentUser.name}</span>
-              <span className="text-secondary" style={{ fontSize: '0.75rem' }}>{currentUser.role}</span>
+              <span className="text-secondary" style={{ fontSize: '0.75rem' }}>
+                {isPreviewing ? <><i className="bi bi-eyeglasses me-1" />{effectiveRole}</> : currentUser.role}
+              </span>
             </span>
             <i className="bi bi-chevron-down small" />
           </Dropdown.Toggle>
           <Dropdown.Menu>
-            <Dropdown.Header>Switch role (demo)</Dropdown.Header>
+            <Dropdown.Header>Sign in as (demo identity)</Dropdown.Header>
             {usersByRole.map(({ role, users }) => users.map(u => (
               <Dropdown.Item
                 key={u.id}

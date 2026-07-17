@@ -27,8 +27,9 @@ const SORT_OPTIONS = [
 ];
 
 export default function ProjectsList() {
-  const { projects, createProject } = useData();
-  const { can } = useAuth();
+  const { projects: allProjects, branches, createProject } = useData();
+  const { can, scopeByBranch, effectiveBranch } = useAuth();
+  const projects = scopeByBranch(allProjects);
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -81,6 +82,10 @@ export default function ProjectsList() {
       </div>
     ) },
     { key: 'location', label: 'Location', accessor: p => p.location },
+    ...(effectiveBranch ? [] : [{ key: 'branch', label: 'Branch', accessor: (p: Project) => branches.find(b => b.id === p.branchId)?.code || '—', render: (p: Project) => {
+      const branch = branches.find(b => b.id === p.branchId);
+      return branch ? <span className="badge text-bg-light border">{branch.code}</span> : <span className="text-secondary">—</span>;
+    } } as Column<Project>]),
     { key: 'pm', label: 'Project Manager', accessor: p => p.projectManager },
     { key: 'dates', label: 'Start → Target', render: p => <span className="small">{formatDate(p.startDate)} → {formatDate(p.targetCompletionDate)}</span> },
     { key: 'progress', label: 'Progress', sortable: true, accessor: p => p.progress, render: p => (
