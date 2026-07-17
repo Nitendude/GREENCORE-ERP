@@ -3,6 +3,10 @@ import type {
   PurchaseOrder, MaterialItem, IssueRisk, DailyLog, AuditEntry,
 } from '../types';
 import { genId } from '../utils/format';
+import {
+  COST_MATERIALS, LABOR_RATES, EQUIPMENT_RATES, PRODUCTIVITY_RATES,
+  COMPOSITION_TEMPLATES, ESTIMATES,
+} from './estimationSeed';
 
 // Anchor "today" so seed data feels current relative to the app clock.
 const TODAY = new Date('2026-07-16T09:00:00');
@@ -788,6 +792,12 @@ export const seedDatabase = () => ({
   dailyLogs: cloneSeed(DAILY_LOGS),
   notifications: cloneSeed(NOTIFICATIONS),
   auditLog: cloneSeed(AUDIT_LOG),
+  costMaterials: cloneSeed(COST_MATERIALS),
+  laborRates: cloneSeed(LABOR_RATES),
+  equipmentRates: cloneSeed(EQUIPMENT_RATES),
+  productivityRates: cloneSeed(PRODUCTIVITY_RATES),
+  compositionTemplates: cloneSeed(COMPOSITION_TEMPLATES),
+  estimates: cloneSeed(ESTIMATES),
 });
 
 export { genId };

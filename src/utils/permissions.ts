@@ -20,6 +20,11 @@ export type Permission =
   | 'settings.manage'
   | 'reports.export'
   | 'branches.manage'
+  | 'costdb.view'
+  | 'costdb.manage'
+  | 'estimates.view'
+  | 'estimates.manage'
+  | 'estimates.convert'
   | 'nav.dashboard'
   | 'nav.projects'
   | 'nav.gantt'
@@ -31,15 +36,17 @@ export type Permission =
   | 'nav.procurement'
   | 'nav.inventory'
   | 'nav.reports'
+  | 'nav.costdb'
+  | 'nav.estimates'
   | 'nav.branches'
   | 'nav.access'
   | 'nav.users'
   | 'nav.settings';
 
 const ALL_NAV: Permission[] = [
-  'nav.dashboard', 'nav.projects', 'nav.gantt', 'nav.bidding', 'nav.tasks', 'nav.documents', 'nav.cad',
-  'nav.financials', 'nav.procurement', 'nav.inventory', 'nav.reports', 'nav.branches', 'nav.access',
-  'nav.users', 'nav.settings',
+  'nav.dashboard', 'nav.projects', 'nav.gantt', 'nav.bidding', 'nav.costdb', 'nav.estimates', 'nav.tasks',
+  'nav.documents', 'nav.cad', 'nav.financials', 'nav.procurement', 'nav.inventory', 'nav.reports',
+  'nav.branches', 'nav.access', 'nav.users', 'nav.settings',
 ];
 
 const matrix: Record<Role, Permission[]> = {
@@ -49,33 +56,40 @@ const matrix: Record<Role, Permission[]> = {
     'bidding.view', 'bidding.manage', 'bidding.estimate.edit', 'bidding.approve', 'bidding.convert',
     'documents.upload', 'documents.delete', 'cad.upload', 'procurement.view', 'procurement.manage',
     'inventory.view', 'users.manage', 'settings.manage', 'reports.export', 'branches.manage',
+    'costdb.view', 'costdb.manage', 'estimates.view', 'estimates.manage', 'estimates.convert',
   ],
   Management: [
-    'nav.dashboard', 'nav.projects', 'nav.gantt', 'nav.bidding', 'nav.tasks', 'nav.documents', 'nav.cad',
-    'nav.financials', 'nav.procurement', 'nav.inventory', 'nav.reports', 'nav.branches', 'nav.access', 'nav.users',
+    'nav.dashboard', 'nav.projects', 'nav.gantt', 'nav.bidding', 'nav.costdb', 'nav.estimates', 'nav.tasks',
+    'nav.documents', 'nav.cad', 'nav.financials', 'nav.procurement', 'nav.inventory', 'nav.reports',
+    'nav.branches', 'nav.access', 'nav.users',
     'projects.view', 'projects.create', 'projects.edit', 'projects.financials.view',
     'bidding.view', 'bidding.manage', 'bidding.approve', 'bidding.convert',
     'documents.upload', 'procurement.view', 'inventory.view', 'reports.export', 'branches.manage',
+    'costdb.view', 'estimates.view', 'estimates.manage', 'estimates.convert',
   ],
   'Project Manager': [
-    'nav.dashboard', 'nav.projects', 'nav.gantt', 'nav.bidding', 'nav.tasks', 'nav.documents', 'nav.cad',
-    'nav.financials', 'nav.procurement', 'nav.inventory', 'nav.reports',
+    'nav.dashboard', 'nav.projects', 'nav.gantt', 'nav.bidding', 'nav.costdb', 'nav.estimates', 'nav.tasks',
+    'nav.documents', 'nav.cad', 'nav.financials', 'nav.procurement', 'nav.inventory', 'nav.reports',
     'projects.view', 'projects.create', 'projects.edit', 'projects.financials.view',
     'bidding.view', 'documents.upload', 'documents.delete', 'cad.upload', 'procurement.view',
     'procurement.manage', 'inventory.view', 'reports.export',
+    'costdb.view', 'estimates.view',
   ],
   'Bidding Manager': [
-    'nav.dashboard', 'nav.bidding', 'nav.tasks', 'nav.documents', 'nav.reports',
+    'nav.dashboard', 'nav.bidding', 'nav.costdb', 'nav.estimates', 'nav.tasks', 'nav.documents', 'nav.reports',
     'projects.view', 'bidding.view', 'bidding.manage', 'bidding.estimate.edit',
     'bidding.approve', 'bidding.convert', 'documents.upload', 'documents.delete', 'reports.export',
+    'costdb.view', 'estimates.view', 'estimates.manage', 'estimates.convert',
   ],
   Estimator: [
-    'nav.dashboard', 'nav.bidding', 'nav.documents', 'nav.reports',
+    'nav.dashboard', 'nav.bidding', 'nav.costdb', 'nav.estimates', 'nav.documents', 'nav.reports',
     'bidding.view', 'bidding.estimate.edit', 'documents.upload',
+    'costdb.view', 'costdb.manage', 'estimates.view', 'estimates.manage',
   ],
   Finance: [
-    'nav.dashboard', 'nav.projects', 'nav.gantt', 'nav.bidding', 'nav.financials', 'nav.reports',
+    'nav.dashboard', 'nav.projects', 'nav.gantt', 'nav.bidding', 'nav.costdb', 'nav.estimates', 'nav.financials', 'nav.reports',
     'projects.view', 'projects.financials.view', 'bidding.view', 'reports.export',
+    'costdb.view', 'estimates.view',
   ],
   Procurement: [
     'nav.dashboard', 'nav.projects', 'nav.gantt', 'nav.procurement', 'nav.inventory', 'nav.reports',
@@ -114,6 +128,8 @@ export const PERMISSION_CATALOG: { group: string; icon: string; items: { key: Pe
       { key: 'nav.projects', label: 'Projects' },
       { key: 'nav.gantt', label: 'Gantt Viewer' },
       { key: 'nav.bidding', label: 'Bidding' },
+      { key: 'nav.costdb', label: 'Cost Database' },
+      { key: 'nav.estimates', label: 'Estimates' },
       { key: 'nav.tasks', label: 'Tasks' },
       { key: 'nav.documents', label: 'Documents' },
       { key: 'nav.cad', label: 'CAD Workspace' },
@@ -144,6 +160,16 @@ export const PERMISSION_CATALOG: { group: string; icon: string; items: { key: Pe
       { key: 'bidding.estimate.edit', label: 'Edit cost estimates' },
       { key: 'bidding.approve', label: 'Approve bids' },
       { key: 'bidding.convert', label: 'Convert bid to project' },
+    ],
+  },
+  {
+    group: 'Estimation & Pre-Construction', icon: 'bi-calculator',
+    items: [
+      { key: 'costdb.view', label: 'View cost database' },
+      { key: 'costdb.manage', label: 'Manage cost database' },
+      { key: 'estimates.view', label: 'View estimates' },
+      { key: 'estimates.manage', label: 'Create / edit estimates' },
+      { key: 'estimates.convert', label: 'Convert won quotation to project' },
     ],
   },
   {

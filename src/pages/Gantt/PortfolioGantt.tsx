@@ -1,16 +1,18 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
+import Modal from 'react-bootstrap/Modal';
 import Breadcrumbs from '../../components/layout/Breadcrumbs';
 import SummaryCard from '../../components/ui/SummaryCard';
 import StatusBadge from '../../components/ui/StatusBadge';
 import EmptyState from '../../components/ui/EmptyState';
 import { useData } from '../../store/DataContext';
-import { formatDate } from '../../utils/format';
-import type { Phase, Project } from '../../types';
+import { useAuth } from '../../store/AuthContext';
+import { formatDate, genId } from '../../utils/format';
+import type { Phase, Project, ProjectStatus } from '../../types';
 
 const DAY_MS = 86_400_000;
 
@@ -44,13 +46,26 @@ function statusClass(status: Project['status'] | Phase['status']): string {
   return 'active';
 }
 
+const PROJECT_STATUS_FLOW: ProjectStatus[] = ['Planning', 'Mobilization', 'In Progress', 'On Hold', 'Delayed', 'For Inspection', 'Completed', 'Closed', 'Cancelled'];
+const PHASE_STATUS_FLOW: Phase['status'][] = ['Not Started', 'In Progress', 'Delayed', 'Completed'];
+const CONFIRM_REQUIRED_STATUSES: ProjectStatus[] = ['On Hold', 'Cancelled', 'Completed', 'Closed'];
+
+type StatusEditTarget =
+  | { kind: 'project'; project: Project }
+  | { kind: 'phase'; project: Project; phase: Phase };
+
 export default function PortfolioGantt() {
-  const { projects } = useData();
+  const { projects, changeProjectStatus, updatePhaseStatus, addPhase } = useData();
+  const { can, currentUser } = useAuth();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [dayWidth, setDayWidth] = useState(3);
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set(projects.map(project => project.id)));
+  const [statusTarget, setStatusTarget] = useState<StatusEditTarget | null>(null);
+  const [addPhaseFor, setAddPhaseFor] = useState<Project | null>(null);
+
+  const canEdit = can('projects.edit');
 
   const visibleProjects = useMemo(() => projects
     .filter(project => !project.archived)
@@ -113,11 +128,16 @@ export default function PortfolioGantt() {
   const expandAll = () => setExpanded(new Set(visibleProjects.map(project => project.id)));
   const collapseAll = () => setExpanded(new Set());
 
+  const openAddPhase = (project: Project) => {
+    setExpanded(current => new Set(current).add(project.id));
+    setAddPhaseFor(project);
+  };
+
   return (
     <div>
       <Breadcrumbs items={[{ label: 'Portfolio Gantt' }]} />
       <div className="d-flex justify-content-between align-items-start flex-wrap gap-2 mt-2 mb-3">
-        <div><h4 className="fw-bold mb-1">Portfolio Gantt Viewer</h4><p className="text-secondary small mb-0">One timeline for project schedules, phases, milestones, and completion progress.</p></div>
+        <div><h4 className="fw-bold mb-1">Portfolio Gantt Viewer</h4><p className="text-secondary small mb-0">One timeline for project schedules, phases, milestones, and completion progress.{canEdit && ' Click a status badge to update it, or add a new phase.'}</p></div>
         <div className="gantt-legend"><span><i className="active" />Active</span><span><i className="completed" />Completed</span><span><i className="delayed" />Delayed</span><span><b />Today</span></div>
       </div>
 
@@ -157,7 +177,14 @@ export default function PortfolioGantt() {
                     <div className="gantt-label-cell">
                       <button type="button" className="gantt-expand" onClick={() => toggleProject(project.id)} aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${project.name}`}><i className={`bi bi-chevron-${isExpanded ? 'down' : 'right'}`} /></button>
                       <button type="button" className="gantt-project-link" onClick={() => navigate(`/projects/${project.id}/schedule`)}><strong>{project.name}</strong><small>{project.code} · {project.projectManager}</small></button>
-                      <div className="gantt-row-progress"><span>{project.progress}%</span><StatusBadge status={project.status} /></div>
+                      <div className="gantt-row-progress">
+                        <span>{project.progress}%</span>
+                        {canEdit ? (
+                          <button type="button" className="gantt-status-trigger" title="Update project status" onClick={() => setStatusTarget({ kind: 'project', project })}>
+                            <StatusBadge status={project.status} /><i className="bi bi-pencil-fill" />
+                          </button>
+                        ) : <StatusBadge status={project.status} />}
+                      </div>
                     </div>
                     <div className="gantt-timeline" style={{ width: timelineWidth }}>
                       <div className={`gantt-bar project ${statusClass(project.status)}`} style={projectBar} title={`${project.name}: ${project.progress}% complete\n${formatDate(project.startDate)} – ${formatDate(project.targetCompletionDate)}`}>
@@ -170,14 +197,212 @@ export default function PortfolioGantt() {
 
                   {isExpanded && project.phases.map(phase => {
                     const phaseBar = barPosition(phase.plannedStart, phase.plannedEnd);
-                    return <div key={phase.id} className="gantt-data-row gantt-phase-row"><div className="gantt-label-cell"><span className="gantt-phase-indent"><i className="bi bi-arrow-return-right" />{phase.name}</span><div className="gantt-row-progress"><span>{phase.progress}%</span><StatusBadge status={phase.status} /></div></div><div className="gantt-timeline" style={{ width: timelineWidth }}><div className={`gantt-bar phase ${statusClass(phase.status)}`} style={phaseBar} title={`${phase.name}: ${phase.progress}% complete\n${formatDate(phase.plannedStart)} – ${formatDate(phase.plannedEnd)}`}><div className="gantt-bar-progress" style={{ width: `${phase.progress}%` }} /></div>{todayVisible && <div className="gantt-today-line" style={{ left: todayLeft }} />}</div></div>;
+                    return (
+                      <div key={phase.id} className="gantt-data-row gantt-phase-row">
+                        <div className="gantt-label-cell">
+                          <span className="gantt-phase-indent"><i className="bi bi-arrow-return-right" />{phase.name}</span>
+                          <div className="gantt-row-progress">
+                            <span>{phase.progress}%</span>
+                            {canEdit ? (
+                              <button type="button" className="gantt-status-trigger" title="Update phase status" onClick={() => setStatusTarget({ kind: 'phase', project, phase })}>
+                                <StatusBadge status={phase.status} /><i className="bi bi-pencil-fill" />
+                              </button>
+                            ) : <StatusBadge status={phase.status} />}
+                          </div>
+                        </div>
+                        <div className="gantt-timeline" style={{ width: timelineWidth }}>
+                          <div className={`gantt-bar phase ${statusClass(phase.status)}`} style={phaseBar} title={`${phase.name}: ${phase.progress}% complete\n${formatDate(phase.plannedStart)} – ${formatDate(phase.plannedEnd)}`}><div className="gantt-bar-progress" style={{ width: `${phase.progress}%` }} /></div>
+                          {todayVisible && <div className="gantt-today-line" style={{ left: todayLeft }} />}
+                        </div>
+                      </div>
+                    );
                   })}
+
+                  {isExpanded && canEdit && (
+                    <div className="gantt-data-row gantt-add-phase-row">
+                      <div className="gantt-label-cell">
+                        <button type="button" className="gantt-add-phase-btn" onClick={() => openAddPhase(project)}>
+                          <i className="bi bi-plus-lg" /> Add Phase
+                        </button>
+                      </div>
+                      <div className="gantt-timeline" style={{ width: timelineWidth }} />
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
         </div>
       )}
+
+      <GanttStatusModal
+        target={statusTarget}
+        onCancel={() => setStatusTarget(null)}
+        onConfirmProject={(newStatus, remarks) => {
+          if (statusTarget?.kind === 'project') changeProjectStatus(statusTarget.project.id, newStatus, currentUser.name, remarks || `Status changed to ${newStatus}`);
+          setStatusTarget(null);
+        }}
+        onConfirmPhase={(newStatus) => {
+          if (statusTarget?.kind === 'phase') updatePhaseStatus(statusTarget.project.id, statusTarget.phase.id, newStatus, currentUser.name);
+          setStatusTarget(null);
+        }}
+      />
+
+      <AddPhaseModal
+        project={addPhaseFor}
+        onCancel={() => setAddPhaseFor(null)}
+        onSave={phase => {
+          if (addPhaseFor) addPhase(addPhaseFor.id, phase, currentUser.name);
+          setAddPhaseFor(null);
+        }}
+      />
     </div>
+  );
+}
+
+function GanttStatusModal({
+  target, onCancel, onConfirmProject, onConfirmPhase,
+}: {
+  target: StatusEditTarget | null;
+  onCancel: () => void;
+  onConfirmProject: (status: ProjectStatus, remarks: string) => void;
+  onConfirmPhase: (status: Phase['status']) => void;
+}) {
+  const [selected, setSelected] = useState<string>('');
+  const [remarks, setRemarks] = useState('');
+  const [error, setError] = useState(false);
+
+  // Initialize as soon as a target is set (on open), not on the modal's
+  // enter-transition callback — that fires ~300ms later and can race with
+  // (and silently overwrite) a fast user selection.
+  useEffect(() => {
+    if (!target) return;
+    setSelected(target.kind === 'project' ? target.project.status : target.phase.status);
+    setRemarks('');
+    setError(false);
+  }, [target]);
+
+  if (!target) return <Modal show={false} onHide={onCancel} />;
+
+  const isProject = target.kind === 'project';
+  const name = isProject ? target.project.name : target.phase.name;
+  const currentStatus = isProject ? target.project.status : target.phase.status;
+  const options = isProject ? PROJECT_STATUS_FLOW : PHASE_STATUS_FLOW;
+  const requiresRemarks = isProject && CONFIRM_REQUIRED_STATUSES.includes(selected as ProjectStatus) && selected !== currentStatus;
+
+  const handleConfirm = () => {
+    if (!selected || selected === currentStatus) { onCancel(); return; }
+    if (requiresRemarks && !remarks.trim()) { setError(true); return; }
+    if (isProject) onConfirmProject(selected as ProjectStatus, remarks);
+    else onConfirmPhase(selected as Phase['status']);
+  };
+
+  return (
+    <Modal show={target !== null} onHide={onCancel} centered>
+      <Modal.Header closeButton>
+        <Modal.Title as="h5">Update {isProject ? 'Project' : 'Phase'} Status</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <p className="text-secondary small mb-2">{isProject ? 'Project' : 'Phase'}: <strong className="text-body">{name}</strong></p>
+        <Form.Group controlId="gantt-status-select" className="mb-2">
+          <Form.Label>New status</Form.Label>
+          <Form.Select value={selected} onChange={e => { setSelected(e.target.value); setError(false); }}>
+            {options.map(o => <option key={o} value={o}>{o}{o === currentStatus ? ' (current)' : ''}</option>)}
+          </Form.Select>
+        </Form.Group>
+        {requiresRemarks && (
+          <Form.Group controlId="gantt-status-remarks">
+            <Form.Label>Remarks <span className="text-danger">*</span></Form.Label>
+            <Form.Control as="textarea" rows={3} value={remarks} onChange={e => { setRemarks(e.target.value); setError(false); }} placeholder="Explain the reason for this change…" isInvalid={error} />
+            <Form.Control.Feedback type="invalid">Remarks are required for this status change.</Form.Control.Feedback>
+          </Form.Group>
+        )}
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="outline-secondary" onClick={onCancel}>Cancel</Button>
+        <Button variant={requiresRemarks ? 'warning' : 'primary'} onClick={handleConfirm} disabled={!selected}>Update Status</Button>
+      </Modal.Footer>
+    </Modal>
+  );
+}
+
+function AddPhaseModal({ project, onCancel, onSave }: { project: Project | null; onCancel: () => void; onSave: (phase: Phase) => void }) {
+  const [name, setName] = useState('');
+  const [plannedStart, setPlannedStart] = useState('');
+  const [plannedEnd, setPlannedEnd] = useState('');
+  const [weight, setWeight] = useState('10');
+  const [initialStatus, setInitialStatus] = useState<Phase['status']>('Not Started');
+  const [error, setError] = useState('');
+
+  // Initialize on open (target reference change), not on the enter-transition
+  // callback — see GanttStatusModal for why that races with fast input.
+  useEffect(() => {
+    if (!project) return;
+    setName(''); setWeight('10'); setInitialStatus('Not Started'); setError('');
+    setPlannedStart(project.startDate || '');
+    setPlannedEnd(project.targetCompletionDate || '');
+  }, [project]);
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) { setError('Phase name is required.'); return; }
+    if (!plannedStart || !plannedEnd) { setError('Planned start and end dates are required.'); return; }
+    if (plannedEnd < plannedStart) { setError('Planned end must be on or after the planned start.'); return; }
+    onSave({
+      id: genId('ph'), name: name.trim(), weight: Number(weight) || 0,
+      plannedStart, plannedEnd, progress: initialStatus === 'Completed' ? 100 : 0, status: initialStatus,
+      actualStart: initialStatus === 'Not Started' ? undefined : plannedStart,
+      actualEnd: initialStatus === 'Completed' ? plannedEnd : undefined,
+    });
+  };
+
+  return (
+    <Modal show={project !== null} onHide={onCancel} centered>
+      <Form onSubmit={submit} noValidate>
+        <Modal.Header closeButton><Modal.Title as="h5">Add Phase{project ? ` — ${project.name}` : ''}</Modal.Title></Modal.Header>
+        <Modal.Body>
+          <Form.Group controlId="ap-name" className="mb-3">
+            <Form.Label className="form-required">Phase Name</Form.Label>
+            <Form.Control value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Interior Finishes" />
+          </Form.Group>
+          <Row className="g-3 mb-3">
+            <Col xs={6}>
+              <Form.Group controlId="ap-start">
+                <Form.Label className="form-required">Planned Start</Form.Label>
+                <Form.Control type="date" value={plannedStart} onChange={e => setPlannedStart(e.target.value)} />
+              </Form.Group>
+            </Col>
+            <Col xs={6}>
+              <Form.Group controlId="ap-end">
+                <Form.Label className="form-required">Planned End</Form.Label>
+                <Form.Control type="date" value={plannedEnd} onChange={e => setPlannedEnd(e.target.value)} />
+              </Form.Group>
+            </Col>
+          </Row>
+          <Row className="g-3">
+            <Col xs={6}>
+              <Form.Group controlId="ap-weight">
+                <Form.Label>Weight (%)</Form.Label>
+                <Form.Control type="number" min={0} max={100} value={weight} onChange={e => setWeight(e.target.value)} />
+                <Form.Text>Share of overall project progress this phase represents.</Form.Text>
+              </Form.Group>
+            </Col>
+            <Col xs={6}>
+              <Form.Group controlId="ap-status">
+                <Form.Label>Initial Status</Form.Label>
+                <Form.Select value={initialStatus} onChange={e => setInitialStatus(e.target.value as Phase['status'])}>
+                  {PHASE_STATUS_FLOW.map(s => <option key={s} value={s}>{s}</option>)}
+                </Form.Select>
+              </Form.Group>
+            </Col>
+          </Row>
+          {error && <div className="text-danger small mt-3">{error}</div>}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="outline-secondary" onClick={onCancel}>Cancel</Button>
+          <Button variant="primary" type="submit">Add Phase</Button>
+        </Modal.Footer>
+      </Form>
+    </Modal>
   );
 }

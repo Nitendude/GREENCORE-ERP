@@ -12,6 +12,7 @@ import StatusBadge from '../../components/ui/StatusBadge';
 import EmptyState from '../../components/ui/EmptyState';
 import ProjectFormModal from './ProjectFormModal';
 import ProjectProgressModal from './ProjectProgressModal';
+import ProjectQuickViewModal from './ProjectQuickViewModal';
 import { useData } from '../../store/DataContext';
 import { useAuth } from '../../store/AuthContext';
 import { formatCurrency, formatDate } from '../../utils/format';
@@ -42,6 +43,7 @@ export default function ProjectsList() {
   const [view, setView] = useState<'table' | 'card'>('table');
   const [showForm, setShowForm] = useState(false);
   const [progressProject, setProgressProject] = useState<Project | null>(null);
+  const [quickViewProject, setQuickViewProject] = useState<Project | null>(null);
 
   const projectManagers = Array.from(new Set(projects.map(p => p.projectManager))).sort();
 
@@ -167,12 +169,12 @@ export default function ProjectsList() {
       {filtered.length === 0 ? (
         <EmptyState icon="bi-kanban" title="No projects found" message="Try adjusting your search or filters." />
       ) : view === 'table' ? (
-        <DataTable columns={columns} rows={filtered} keyField={p => p.id} onRowClick={p => navigate(`/projects/${p.id}`)} pageSize={8} />
+        <DataTable columns={columns} rows={filtered} keyField={p => p.id} onRowClick={p => setQuickViewProject(p)} pageSize={8} />
       ) : (
         <Row className="g-3">
           {filtered.map(p => (
             <Col key={p.id} xs={12} sm={6} lg={4}>
-              <Card className="section-card h-100 cursor-pointer" onClick={() => navigate(`/projects/${p.id}`)}>
+              <Card className="section-card h-100 cursor-pointer" onClick={() => setQuickViewProject(p)}>
                 <Card.Body>
                   <div className="d-flex justify-content-between align-items-start mb-1">
                     <span className="text-secondary small">{p.code}</span>
@@ -206,6 +208,12 @@ export default function ProjectsList() {
         show={progressProject !== null}
         project={progressProject}
         onClose={() => setProgressProject(null)}
+      />
+
+      <ProjectQuickViewModal
+        show={quickViewProject !== null}
+        project={quickViewProject}
+        onClose={() => setQuickViewProject(null)}
       />
 
       <ProjectFormModal

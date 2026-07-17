@@ -17,6 +17,17 @@ export function formatCompactCurrency(value: number | undefined | null): string 
   }).format(value);
 }
 
+// Currency with 2 decimals — used for unit rates (e.g. ₱12.50 / block).
+export function formatRate(value: number | undefined | null): string {
+  if (value === undefined || value === null || Number.isNaN(value)) return '—';
+  return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+}
+
+export function formatQty(value: number | undefined | null): string {
+  if (value === undefined || value === null || Number.isNaN(value)) return '—';
+  return new Intl.NumberFormat('en-PH', { maximumFractionDigits: 2 }).format(value);
+}
+
 export function formatDate(value: string | undefined | null): string {
   if (!value) return '—';
   const d = new Date(value);

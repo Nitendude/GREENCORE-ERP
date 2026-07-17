@@ -482,3 +482,184 @@ export interface Notification {
   timestamp: string;
   read: boolean;
 }
+
+// ================= Estimation & Pre-Construction Module =================
+
+// ---------- Item & Cost Database (foundation) ----------
+export interface PricePoint {
+  date: string;
+  unitCost: number;
+  supplier: string;
+  note?: string;
+}
+
+export type MaterialCategory =
+  | 'Cement & Aggregates' | 'Masonry' | 'Steel & Rebar' | 'Lumber & Formwork'
+  | 'Finishes' | 'Electrical' | 'Plumbing' | 'Hardware' | 'Roofing' | 'Miscellaneous';
+
+export interface CostMaterial {
+  id: ID;
+  code: string;
+  name: string;
+  category: MaterialCategory;
+  unit: string; // pc, bag, cu.m, kg, sheet, etc.
+  unitCost: number; // current cost
+  supplier: string;
+  priceHistory: PricePoint[];
+  updatedAt: string;
+}
+
+export interface LaborRate {
+  id: ID;
+  trade: string; // Mason, Carpenter, Electrician, Plumber, Laborer, Foreman...
+  skill: 'Skilled' | 'Semi-Skilled' | 'Unskilled' | 'Supervisor';
+  dailyRate: number; // per man-day
+  updatedAt: string;
+}
+
+export interface EquipmentRate {
+  id: ID;
+  name: string;
+  ownership: 'Owned' | 'Rental';
+  hourlyRate: number;
+  dailyRate: number;
+  updatedAt: string;
+}
+
+export interface ProductivityRate {
+  id: ID;
+  workItem: string; // e.g. "CHB Laying (100mm)"
+  unit: string; // sqm, cu.m, lm...
+  outputPerManDay: number; // e.g. 12 sqm / man-day
+  crew: string; // e.g. "1 Mason + 1 Laborer"
+  updatedAt: string;
+}
+
+// ---------- Composition templates (BOM generation) ----------
+export interface CompositionComponent {
+  materialId: ID;
+  qtyPerUnit: number; // material qty needed to build 1 unit of the work item
+  wastagePct: number; // default wastage for this component
+}
+
+export interface CompositionTemplate {
+  id: ID;
+  workItem: string;   // e.g. "CHB Wall 100mm (per sqm)"
+  unit: string;       // sqm, cu.m...
+  components: CompositionComponent[];
+  laborTrade?: string;        // links to a LaborRate trade
+  productivityId?: ID;        // links to a ProductivityRate
+}
+
+// ---------- BOQ ----------
+export type BoqDivision =
+  | 'General Requirements' | 'Earthworks' | 'Concrete' | 'Masonry' | 'Metal Works'
+  | 'Wood & Plastics' | 'Thermal & Moisture' | 'Doors & Windows' | 'Finishes'
+  | 'Electrical' | 'Plumbing' | 'Mechanical' | 'Fire Protection' | 'Siteworks';
+
+export interface BoqLineItem {
+  id: ID;
+  division: BoqDivision;
+  description: string;
+  unit: string;
+  quantity: number;
+  materialUnitCost: number;
+  laborUnitCost: number;
+  equipmentUnitCost: number;
+  templateId?: ID; // composition template for BOM expansion
+}
+
+export interface BoqRevision {
+  id: ID;
+  label: string; // Rev A, Rev B...
+  date: string;
+  author: string;
+  note: string;
+  lineItemCount: number;
+  directCost: number;
+}
+
+// ---------- Costing ----------
+export interface IndirectCost {
+  id: ID;
+  label: string; // OCM, Mobilization, Temporary Facilities, Safety...
+  type: 'percent' | 'amount';
+  value: number; // percent of direct cost OR fixed amount
+}
+
+export interface CostingConfig {
+  indirects: IndirectCost[];
+  profitMarginPct: number;
+  vatPct: number; // 12
+  contingencyPct: number;
+}
+
+// ---------- Quotation ----------
+export type QuotationStatus = 'Draft' | 'Sent' | 'Negotiating' | 'Won' | 'Lost';
+export type QuotationDetailLevel = 'Lump Sum' | 'Per Division' | 'Full BOQ';
+
+export interface QuotationRevision {
+  id: ID;
+  label: string; // Rev A, B, C
+  date: string;
+  author: string;
+  changeNote: string;
+  contractPrice: number;
+}
+
+export interface QuotationConfig {
+  detailLevel: QuotationDetailLevel;
+  validityDays: number;
+  paymentSchedule: string;
+  termsAndConditions: string;
+  exclusions: string;
+}
+
+// ---------- Design ----------
+export interface DesignDrawing {
+  id: ID;
+  name: string;
+  category: 'Plan' | 'Perspective' | 'Specification' | 'Elevation' | 'Section' | 'Detail';
+  version: string;
+  uploadedBy: string;
+  uploadedDate: string;
+  note?: string;
+}
+
+export interface DesignRevisionEntry {
+  id: ID;
+  date: string;
+  author: string;
+  description: string;
+  linkedQuotationRev?: string; // Rev A/B/C
+  triggersReEstimate: boolean;
+}
+
+// ---------- Estimate (the quotation record) ----------
+export interface Estimate {
+  id: ID;
+  code: string; // EST-2026-001
+  projectName: string;
+  client: string;
+  clientContact: string;
+  location: string;
+  grossFloorArea: number; // sqm — for per-sqm mode
+  status: QuotationStatus;
+  currentRevision: string; // Rev A/B/C
+  boqItems: BoqLineItem[];
+  boqRevisions: BoqRevision[];
+  costing: CostingConfig;
+  quotation: QuotationConfig;
+  quotationRevisions: QuotationRevision[];
+  drawings: DesignDrawing[];
+  designRevisions: DesignRevisionEntry[];
+  estimator: string;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  branchId?: ID;
+  convertedProjectId?: ID;
+  convertedAt?: string;
+  convertedBy?: string;
+  sourceBidId?: ID;
+}

@@ -14,6 +14,8 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Projects', to: '/projects', icon: 'bi-kanban', permission: 'nav.projects' },
   { label: 'Gantt Viewer', to: '/gantt', icon: 'bi-bar-chart-steps', permission: 'nav.gantt' },
   { label: 'Bidding', to: '/bidding', icon: 'bi-briefcase', permission: 'nav.bidding' },
+  { label: 'Cost Database', to: '/cost-database', icon: 'bi-database', permission: 'nav.costdb' },
+  { label: 'Estimates', to: '/estimates', icon: 'bi-calculator', permission: 'nav.estimates' },
   { label: 'Tasks', to: '/tasks', icon: 'bi-check2-square', permission: 'nav.tasks' },
   { label: 'Documents', to: '/documents', icon: 'bi-folder2-open', permission: 'nav.documents' },
   { label: 'CAD', to: '/cad', icon: 'bi-vector-pen', permission: 'nav.cad' },

@@ -26,6 +26,9 @@ const ClientPortal = lazy(() => import('./pages/ClientPortal/ClientPortal'));
 const PortfolioGantt = lazy(() => import('./pages/Gantt/PortfolioGantt'));
 const BranchesPage = lazy(() => import('./pages/Branches/BranchesPage'));
 const AccessPreviewPage = lazy(() => import('./pages/Access/AccessPreviewPage'));
+const CostDatabasePage = lazy(() => import('./pages/CostDatabase/CostDatabasePage'));
+const EstimatesList = lazy(() => import('./pages/Estimates/EstimatesList'));
+const EstimateWorkspace = lazy(() => import('./pages/Estimates/EstimateWorkspace/EstimateWorkspace'));
 
 function App() {
   return (
@@ -48,6 +51,11 @@ function App() {
             <Route path="bidding" element={<RequirePermission permission="nav.bidding"><BiddingList /></RequirePermission>} />
             <Route path="bidding/:bidId" element={<Navigate to="overview" replace />} />
             <Route path="bidding/:bidId/:tab" element={<RequirePermission permission="nav.bidding"><BidWorkspace /></RequirePermission>} />
+
+            <Route path="cost-database" element={<RequirePermission permission="nav.costdb"><CostDatabasePage /></RequirePermission>} />
+            <Route path="estimates" element={<RequirePermission permission="nav.estimates"><EstimatesList /></RequirePermission>} />
+            <Route path="estimates/:estimateId" element={<Navigate to="overview" replace />} />
+            <Route path="estimates/:estimateId/:tab" element={<RequirePermission permission="nav.estimates"><EstimateWorkspace /></RequirePermission>} />
 
             <Route path="tasks" element={<RequirePermission permission="nav.tasks"><TasksPage /></RequirePermission>} />
             <Route path="documents" element={<RequirePermission permission="nav.documents"><DocumentsPage /></RequirePermission>} />

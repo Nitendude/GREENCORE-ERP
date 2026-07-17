@@ -577,3 +577,44 @@ a { color: var(--gc-primary); }
 .access-group-row td { background: #f0f3f6 !important; font-weight: 700; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--gc-text-secondary); }
 .access-perm-name { white-space: nowrap; }
 .access-dash { color: #c7cdd3; }
+
+/* ---------- Project quick view ---------- */
+.quick-view-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem 1.25rem; margin: 0; }
+.quick-view-meta dt { font-size: 0.72rem; color: var(--gc-text-secondary); font-weight: 500; margin-bottom: 0.1rem; }
+.quick-view-meta dd { font-size: 0.9rem; margin: 0; font-weight: 600; }
+
+/* ---------- Floor plan viewer (Three.js integration-point placeholder) ---------- */
+.floorplan-viewer { user-select: none; }
+.floorplan-stage {
+  height: 260px; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(180deg, #eef2f5, #dfe6ea);
+  border-radius: 10px; border: 1px solid var(--gc-border);
+  perspective: 900px; overflow: hidden;
+}
+.floorplan-scene {
+  position: relative; width: 200px; height: 160px;
+  transform-style: preserve-3d; transition: transform 0.05s linear;
+}
+.floorplan-room {
+  position: absolute; border-radius: 4px; border: 1px solid rgba(0,0,0,0.15);
+  box-shadow: 0 6px 0 rgba(0,0,0,0.18);
+  display: flex; align-items: center; justify-content: center;
+}
+.floorplan-room span { font-size: 0.6rem; color: rgba(0,0,0,0.55); font-weight: 600; text-align: center; padding: 2px; }
+
+/* ---------- Gantt status editing ---------- */
+.gantt-status-trigger {
+  display: inline-flex; align-items: center; gap: .3rem;
+  border: none; background: transparent; padding: 0; cursor: pointer; border-radius: 5px;
+}
+.gantt-status-trigger:hover { background: rgba(47, 111, 78, .08); }
+.gantt-status-trigger i.bi-pencil-fill { font-size: .6rem; color: #8b98a3; flex: none; }
+.gantt-status-trigger:hover i.bi-pencil-fill { color: var(--gc-primary); }
+.gantt-add-phase-row { min-height: 34px; }
+.gantt-add-phase-row .gantt-label-cell { background: #fff; }
+.gantt-add-phase-btn {
+  display: inline-flex; align-items: center; gap: .35rem;
+  padding: .2rem .6rem; margin-left: 1.8rem; border: 1px dashed #c3ccd3; border-radius: 6px;
+  background: transparent; color: #5f7687; font-size: .72rem; font-weight: 600;
+}
+.gantt-add-phase-btn:hover { border-color: var(--gc-primary); color: var(--gc-primary); background: rgba(47, 111, 78, .06); }
