@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -7,18 +8,32 @@ import EmptyState from '../../components/ui/EmptyState';
 import { useData } from '../../store/DataContext';
 import { formatDate } from '../../utils/format';
 import { loadCadPdf } from '../../utils/cadFileStorage';
+import { verifyClientInvite, type ClientInvite } from '../../utils/clientInvite';
 
 export default function ClientPortal() {
-  const { projectId } = useParams();
+  const { inviteToken } = useParams();
+  const [invite, setInvite] = useState<ClientInvite | null>(null);
+  const [checkingInvite, setCheckingInvite] = useState(true);
   const { projects, dailyLogs, cadFiles } = useData();
-  const project = projects.find(p => p.id === projectId);
+  const project = projects.find(p => p.id === invite?.projectId);
 
-  if (!project) {
+  useEffect(() => {
+    setCheckingInvite(true);
+    verifyClientInvite(inviteToken ?? '')
+      .then(setInvite)
+      .finally(() => setCheckingInvite(false));
+  }, [inviteToken]);
+
+  if (checkingInvite) {
+    return <div className="client-portal-shell d-flex align-items-center justify-content-center min-vh-100"><div className="spinner-border text-primary" role="status" /></div>;
+  }
+
+  if (!invite || !project) {
     return (
       <div className="client-portal-shell d-flex align-items-center justify-content-center" style={{ minHeight: '100vh' }}>
         <div className="text-center">
-          <EmptyState icon="bi-link-45deg" title="Portal link not found" message="This client portal link is invalid or the project no longer exists." />
-          <Link to="/dashboard" className="btn btn-outline-secondary btn-sm mt-2">Staff Login</Link>
+          <EmptyState icon="bi-shield-x" title="Client access unavailable" message="This private link is invalid, expired, or the project is no longer shared. Ask your Greencore contact for a new link." />
+          <Link to="/login" className="btn btn-outline-secondary btn-sm mt-2">Employee sign in</Link>
         </div>
       </div>
     );
@@ -57,6 +72,7 @@ export default function ClientPortal() {
             <span className="client-portal-brand-mark"><i className="bi bi-buildings" /></span>
             <span className="fw-bold">Greencore Builders — Client Portal</span>
           </div>
+          <div className="client-access-pill"><i className="bi bi-lock-fill me-1" />Private read-only link</div>
           <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
             <h3 className="mb-0 fw-bold">{project.name}</h3>
             <StatusBadge status={project.status} />
@@ -180,7 +196,7 @@ export default function ClientPortal() {
 
       <div className="client-portal-footer">
         Shared read-only project view — Powered by Greencore ERP.{' '}
-        <Link to="/dashboard" className="text-decoration-none">Staff Login</Link>
+        <Link to="/login" className="text-decoration-none">Employee sign in</Link>
       </div>
     </div>
   );

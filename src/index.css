@@ -279,6 +279,83 @@ a { color: var(--gc-primary); }
   .workspace-header { padding: 1rem; }
 }
 
+/* ---------- Private demo access ---------- */
+.access-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background:
+    radial-gradient(circle at 12% 15%, rgba(70, 150, 105, .2), transparent 28rem),
+    radial-gradient(circle at 88% 88%, rgba(43, 98, 72, .2), transparent 30rem),
+    #10251c;
+}
+.access-card {
+  width: min(100%, 440px);
+  padding: 2.25rem;
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .3);
+}
+.access-brand-mark {
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 1.25rem;
+  border-radius: 14px;
+  color: #fff;
+  background: var(--gc-primary);
+  font-size: 1.5rem;
+}
+.access-security-note {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--gc-border);
+  color: var(--gc-text-secondary);
+  font-size: .8rem;
+}
+
+/* ---------- Demo workshop ---------- */
+.module-scope-card {
+  height: 100%;
+  min-height: 190px;
+  padding: 1.15rem;
+  border: 1px solid var(--gc-border);
+  border-radius: 12px;
+  background: var(--gc-surface);
+  transition: opacity .15s, border-color .15s, transform .15s;
+}
+.module-scope-card:hover { border-color: #aecdbd; transform: translateY(-1px); }
+.module-scope-card-off { opacity: .58; background: #eef0f2; }
+.module-scope-card .form-switch { padding-left: 2.8rem; }
+.module-scope-card .form-check-input { width: 2.35rem; height: 1.2rem; }
+
+.client-share-safety {
+  display: flex;
+  gap: .75rem;
+  align-items: flex-start;
+  padding: .8rem;
+  border: 1px solid #bcd8c8;
+  border-radius: 10px;
+  color: #24563b;
+  background: #edf7f1;
+}
+.client-share-safety > i { font-size: 1.2rem; }
+.client-access-pill {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin: .25rem 0 1rem;
+  padding: .32rem .65rem;
+  border-radius: 999px;
+  color: #24563b;
+  background: #e6f3eb;
+  font-size: .76rem;
+  font-weight: 700;
+}
+
 /* ---------- Drawing review workspace ---------- */
 .cad-review-modal .modal-content { border: 0; border-radius: 0; background: #0b1b2a; }
 .cad-review-shell {

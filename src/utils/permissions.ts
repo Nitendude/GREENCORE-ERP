@@ -40,6 +40,7 @@ export type Permission =
   | 'nav.estimates'
   | 'nav.branches'
   | 'nav.access'
+  | 'nav.workshop'
   | 'nav.users'
   | 'nav.settings';
 
@@ -47,6 +48,7 @@ const ALL_NAV: Permission[] = [
   'nav.dashboard', 'nav.projects', 'nav.gantt', 'nav.bidding', 'nav.costdb', 'nav.estimates', 'nav.tasks',
   'nav.documents', 'nav.cad', 'nav.financials', 'nav.procurement', 'nav.inventory', 'nav.reports',
   'nav.branches', 'nav.access', 'nav.users', 'nav.settings',
+  'nav.workshop',
 ];
 
 const matrix: Record<Role, Permission[]> = {
@@ -61,7 +63,7 @@ const matrix: Record<Role, Permission[]> = {
   Management: [
     'nav.dashboard', 'nav.projects', 'nav.gantt', 'nav.bidding', 'nav.costdb', 'nav.estimates', 'nav.tasks',
     'nav.documents', 'nav.cad', 'nav.financials', 'nav.procurement', 'nav.inventory', 'nav.reports',
-    'nav.branches', 'nav.access', 'nav.users',
+    'nav.branches', 'nav.access', 'nav.workshop', 'nav.users',
     'projects.view', 'projects.create', 'projects.edit', 'projects.financials.view',
     'bidding.view', 'bidding.manage', 'bidding.approve', 'bidding.convert',
     'documents.upload', 'procurement.view', 'inventory.view', 'reports.export', 'branches.manage',
@@ -139,6 +141,7 @@ export const PERMISSION_CATALOG: { group: string; icon: string; items: { key: Pe
       { key: 'nav.reports', label: 'Reports' },
       { key: 'nav.branches', label: 'Branches' },
       { key: 'nav.access', label: 'Access Preview' },
+      { key: 'nav.workshop', label: 'Demo Workshop' },
       { key: 'nav.users', label: 'Users' },
       { key: 'nav.settings', label: 'Settings' },
     ],

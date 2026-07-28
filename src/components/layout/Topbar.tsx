@@ -21,7 +21,7 @@ interface TopbarProps {
 }
 
 export default function Topbar({ onToggleSidebar, onToggleMobileSidebar }: TopbarProps) {
-  const { currentUser, allUsers, switchUser, effectiveRole, isPreviewing } = useAuth();
+  const { currentUser, allUsers, switchUser, effectiveRole, isPreviewing, logout } = useAuth();
   const { notifications, markNotificationRead, markAllNotificationsRead, tasks, documents, purchaseOrders, projects, bids } = useData();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
@@ -126,6 +126,9 @@ export default function Topbar({ onToggleSidebar, onToggleMobileSidebar }: Topba
             <Dropdown.Divider />
             <Dropdown.Item onClick={() => navigate('/settings')}>
               <i className="bi bi-gear me-2" /> Settings
+            </Dropdown.Item>
+            <Dropdown.Item onClick={() => { logout(); navigate('/login'); }}>
+              <i className="bi bi-box-arrow-right me-2" /> Sign out
             </Dropdown.Item>
           </Dropdown.Menu>
         </Dropdown>

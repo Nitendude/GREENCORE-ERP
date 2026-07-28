@@ -5,6 +5,8 @@ import { useData } from './DataContext';
 import { getPermissions, hasPermission, type Permission } from '../utils/permissions';
 
 const STORAGE_KEY = 'greencore-erp-current-user-v1';
+const AUTH_SESSION_KEY = 'greencore-erp-staff-session-v1';
+const STAFF_ACCESS_CODE = import.meta.env.VITE_STAFF_ACCESS_CODE || 'NEXII-DEMO-2026';
 // Preview overlay is kept in sessionStorage: it survives refresh / direct-URL
 // entry (so route guards apply) but clears when the tab/session ends.
 const PREVIEW_ROLE_KEY = 'greencore-erp-preview-role';
@@ -13,6 +15,9 @@ const PREVIEW_BRANCH_KEY = 'greencore-erp-preview-branch';
 interface AuthContextValue {
   currentUser: User;
   allUsers: User[];
+  isAuthenticated: boolean;
+  login: (email: string, accessCode: string) => boolean;
+  logout: () => void;
   switchUser: (userId: string) => void;
   can: (permission: Permission) => boolean;
   permissions: Permission[];
@@ -42,6 +47,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { users, branches } = useData();
   const [userId, setUserId] = useState<string>(() => localStorage.getItem(STORAGE_KEY) || USERS[0].id);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => sessionStorage.getItem(AUTH_SESSION_KEY) === 'authenticated');
   const [previewRole, setPreviewRoleState] = useState<Role | null>(() => (sessionStorage.getItem(PREVIEW_ROLE_KEY) as Role | null) || null);
   const [previewBranchId, setPreviewBranchIdState] = useState<string | null>(() => sessionStorage.getItem(PREVIEW_BRANCH_KEY) || null);
 
@@ -62,6 +68,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const currentUser = users.find(u => u.id === userId) || users[0];
+
+  const login = useCallback((email: string, accessCode: string): boolean => {
+    const user = users.find(candidate => candidate.active && candidate.email.toLowerCase() === email.trim().toLowerCase());
+    if (!user || accessCode !== STAFF_ACCESS_CODE) return false;
+    setUserId(user.id);
+    setIsAuthenticated(true);
+    sessionStorage.setItem(AUTH_SESSION_KEY, 'authenticated');
+    return true;
+  }, [users]);
+
+  const logout = useCallback(() => {
+    setIsAuthenticated(false);
+    sessionStorage.removeItem(AUTH_SESSION_KEY);
+    setPreviewRole(null);
+    setPreviewBranchId(null);
+  }, [setPreviewRole, setPreviewBranchId]);
 
   // Switching identity clears any active preview to avoid confusing overlaps.
   const switchUser = useCallback((id: string) => {
@@ -92,6 +114,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<AuthContextValue>(() => ({
     currentUser,
     allUsers: users,
+    isAuthenticated,
+    login,
+    logout,
     switchUser,
     can: (permission: Permission) => hasPermission(effectiveRole, permission),
     permissions: getPermissions(effectiveRole),
@@ -105,7 +130,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setPreviewBranchId,
     exitPreview,
     scopeByBranch,
-  }), [currentUser, users, switchUser, effectiveRole, effectiveBranch, branches, previewRole, previewBranchId, isPreviewing, exitPreview, scopeByBranch]);
+  }), [currentUser, users, isAuthenticated, login, logout, switchUser, effectiveRole, effectiveBranch, branches, previewRole, previewBranchId, isPreviewing, setPreviewRole, setPreviewBranchId, exitPreview, scopeByBranch]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
