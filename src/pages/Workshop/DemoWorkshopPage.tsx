@@ -16,9 +16,19 @@ export default function DemoWorkshopPage() {
   } = useDemoConfig();
   const [showAdd, setShowAdd] = useState(false);
   const [showReset, setShowReset] = useState(false);
+  const [showSubmit, setShowSubmit] = useState(false);
   const [title, setTitle] = useState('');
   const [moduleId, setModuleId] = useState(DEMO_MODULES[0].id);
   const [notes, setNotes] = useState('');
+  const [contactName, setContactName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [company, setCompany] = useState('');
+  const [consent, setConsent] = useState(false);
+  const [website, setWebsite] = useState('');
+  const [isSending, setIsSending] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [submittedReference, setSubmittedReference] = useState('');
   const enabledCount = useMemo(
     () => DEMO_MODULES.filter(module => enabledModules[module.id] !== false).length,
     [enabledModules],
@@ -32,6 +42,56 @@ export default function DemoWorkshopPage() {
     setShowAdd(false);
   };
 
+  const sendRequirements = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSubmitError('');
+    setIsSending(true);
+
+    try {
+      const response = await fetch('/api/demo-discovery-requests', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          workshop_name: workshopName.trim(),
+          system_goal: workshopNotes.trim(),
+          contact_name: contactName.trim(),
+          email: email.trim(),
+          phone: phone.trim() || null,
+          company: company.trim() || null,
+          enabled_modules: DEMO_MODULES
+            .filter(module => enabledModules[module.id] !== false)
+            .map(module => module.id),
+          feature_requests: featureRequests.map(request => ({
+            title: request.title,
+            module_id: request.moduleId,
+            notes: request.notes,
+          })),
+          consent,
+          website,
+        }),
+      });
+      const data = await response.json().catch(() => ({})) as {
+        message?: string;
+        reference?: string;
+        errors?: Record<string, string[]>;
+      };
+
+      if (!response.ok) {
+        const validationMessage = Object.values(data.errors ?? {}).flat()[0];
+        throw new Error(validationMessage ?? data.message ?? 'The requirements could not be sent. Please try again.');
+      }
+
+      setSubmittedReference(data.reference ?? '');
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'The requirements could not be sent. Please try again.');
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   return (
     <div>
       <div className="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-4">
@@ -43,12 +103,15 @@ export default function DemoWorkshopPage() {
         <div className="d-flex gap-2">
           <Button variant="outline-secondary" onClick={() => setShowReset(true)}><i className="bi bi-arrow-counterclockwise me-1" />Reset</Button>
           <Button onClick={() => setShowAdd(true)}><i className="bi bi-plus-lg me-1" />Add feature request</Button>
+          <Button variant="success" onClick={() => { setSubmitError(''); setSubmittedReference(''); setShowSubmit(true); }}>
+            <i className="bi bi-send me-1" />Send to Nexii
+          </Button>
         </div>
       </div>
 
       <Alert variant="info" className="d-flex gap-3 align-items-start">
         <i className="bi bi-info-circle-fill mt-1" />
-        <div><strong>{enabledCount} of {DEMO_MODULES.length} modules are in this demo.</strong> Turning a module off removes it from navigation and blocks its page. Changes are saved only in this browser.</div>
+        <div><strong>{enabledCount} of {DEMO_MODULES.length} modules are in this demo.</strong> Turning a module off removes it from navigation and blocks its page. Draft changes stay in this browser until you send them to Nexii for review and quotation.</div>
       </Alert>
 
       <div className="section-card p-3 p-lg-4 mb-4">
@@ -183,6 +246,70 @@ export default function DemoWorkshopPage() {
           <Button variant="outline-secondary" onClick={() => setShowReset(false)}>Cancel</Button>
           <Button variant="danger" onClick={() => { resetWorkshop(); setShowReset(false); }}>Reset workshop</Button>
         </Modal.Footer>
+      </Modal>
+
+      <Modal show={showSubmit} onHide={() => !isSending && setShowSubmit(false)} centered size="lg">
+        {submittedReference ? (
+          <>
+            <Modal.Header closeButton><Modal.Title as="h5">Requirements sent</Modal.Title></Modal.Header>
+            <Modal.Body className="text-center py-5">
+              <div className="submit-success-icon mx-auto mb-3"><i className="bi bi-check-lg" /></div>
+              <h4>Nexii received this ERP scope</h4>
+              <p className="text-secondary mb-2">Our team can now review the selected modules and feature requests, then prepare a proper quotation.</p>
+              <div className="fw-bold text-primary">Reference: {submittedReference}</div>
+            </Modal.Body>
+            <Modal.Footer><Button onClick={() => setShowSubmit(false)}>Done</Button></Modal.Footer>
+          </>
+        ) : (
+          <Form onSubmit={sendRequirements}>
+            <Modal.Header closeButton><Modal.Title as="h5">Send requirements to Nexii</Modal.Title></Modal.Header>
+            <Modal.Body>
+              <Alert variant="light" className="border small">
+                <strong>Scope summary:</strong> {enabledCount} modules and {featureRequests.length} custom feature {featureRequests.length === 1 ? 'request' : 'requests'}.
+                Nexii employees will receive this inside the company system and use it to prepare your quotation.
+              </Alert>
+              {submitError && <Alert variant="danger">{submitError}</Alert>}
+              <div className="row g-3">
+                <Form.Group className="col-12 col-md-6">
+                  <Form.Label>Contact name</Form.Label>
+                  <Form.Control value={contactName} onChange={event => setContactName(event.target.value)} required autoFocus />
+                </Form.Group>
+                <Form.Group className="col-12 col-md-6">
+                  <Form.Label>Work email</Form.Label>
+                  <Form.Control type="email" value={email} onChange={event => setEmail(event.target.value)} required />
+                </Form.Group>
+                <Form.Group className="col-12 col-md-6">
+                  <Form.Label>Company</Form.Label>
+                  <Form.Control value={company} onChange={event => setCompany(event.target.value)} placeholder="Optional" />
+                </Form.Group>
+                <Form.Group className="col-12 col-md-6">
+                  <Form.Label>Phone</Form.Label>
+                  <Form.Control value={phone} onChange={event => setPhone(event.target.value)} placeholder="Optional" />
+                </Form.Group>
+                <div className="d-none" aria-hidden="true">
+                  <Form.Label>Website</Form.Label>
+                  <Form.Control value={website} onChange={event => setWebsite(event.target.value)} tabIndex={-1} autoComplete="off" />
+                </div>
+                <div className="col-12">
+                  <Form.Check
+                    checked={consent}
+                    onChange={event => setConsent(event.target.checked)}
+                    required
+                    label="I agree that Nexii may store these requirements and contact me about this ERP project and quotation."
+                  />
+                </div>
+              </div>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="outline-secondary" onClick={() => setShowSubmit(false)} disabled={isSending}>Cancel</Button>
+              <Button variant="success" type="submit" disabled={isSending || !workshopName.trim() || !workshopNotes.trim()}>
+                {isSending
+                  ? <><span className="spinner-border spinner-border-sm me-2" aria-hidden="true" />Sending…</>
+                  : <><i className="bi bi-send me-1" />Send requirements</>}
+              </Button>
+            </Modal.Footer>
+          </Form>
+        )}
       </Modal>
     </div>
   );

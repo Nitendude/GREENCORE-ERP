@@ -208,6 +208,10 @@ a { color: var(--gc-primary); }
 .notification-unread { background: #eef6f1; }
 .notification-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gc-primary); flex-shrink: 0; margin-top: 4px; }
 .notification-time { font-size: 0.72rem; color: var(--gc-text-secondary); margin-top: 2px; }
+.submit-success-icon {
+  display: grid; place-items: center; width: 64px; height: 64px;
+  color: #fff; background: var(--gc-primary); border-radius: 50%; font-size: 2rem;
+}
 
 /* ---------- Breadcrumbs ---------- */
 .app-breadcrumbs .breadcrumb { margin-bottom: 0; font-size: 0.85rem; }
