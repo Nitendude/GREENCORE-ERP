@@ -10,6 +10,7 @@ const STATUSES: FeatureRequest['status'][] = ['Requested', 'In review', 'Accepte
 
 export default function DemoWorkshopPage() {
   const {
+    workshopName, workshopNotes, setWorkshopName, setWorkshopNotes,
     enabledModules, featureRequests, setModuleEnabled, addFeatureRequest,
     updateFeatureRequest, removeFeatureRequest, resetWorkshop,
   } = useDemoConfig();
@@ -35,9 +36,9 @@ export default function DemoWorkshopPage() {
     <div>
       <div className="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-4">
         <div>
-          <div className="text-uppercase small fw-bold text-primary mb-1">Scope discovery</div>
-          <h2 className="mb-1">Demo Workshop</h2>
-          <p className="text-secondary mb-0">Shape the prototype with employees and clients before committing to a full ERP build.</p>
+          <div className="text-uppercase small fw-bold text-primary mb-1">Editable scope discovery</div>
+          <h2 className="mb-1">Customize Demo</h2>
+          <p className="text-secondary mb-0">Add or remove modules and capture requested features before committing to a full ERP build.</p>
         </div>
         <div className="d-flex gap-2">
           <Button variant="outline-secondary" onClick={() => setShowReset(true)}><i className="bi bi-arrow-counterclockwise me-1" />Reset</Button>
@@ -49,6 +50,30 @@ export default function DemoWorkshopPage() {
         <i className="bi bi-info-circle-fill mt-1" />
         <div><strong>{enabledCount} of {DEMO_MODULES.length} modules are in this demo.</strong> Turning a module off removes it from navigation and blocks its page. Changes are saved only in this browser.</div>
       </Alert>
+
+      <div className="section-card p-3 p-lg-4 mb-4">
+        <div className="row g-3">
+          <Form.Group className="col-12 col-lg-5">
+            <Form.Label className="fw-semibold">Client or workshop name</Form.Label>
+            <Form.Control
+              value={workshopName}
+              onChange={event => setWorkshopName(event.target.value)}
+              placeholder="Example: ABC Construction discovery"
+            />
+            <Form.Text>Use a different name for each browser-based client walkthrough.</Form.Text>
+          </Form.Group>
+          <Form.Group className="col-12 col-lg-7">
+            <Form.Label className="fw-semibold">What should this system solve?</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={2}
+              value={workshopNotes}
+              onChange={event => setWorkshopNotes(event.target.value)}
+              placeholder="Describe the client's workflow, pain points, approvals, and reporting needs."
+            />
+          </Form.Group>
+        </div>
+      </div>
 
       <div className="row g-3 mb-4">
         {DEMO_MODULES.map(module => {

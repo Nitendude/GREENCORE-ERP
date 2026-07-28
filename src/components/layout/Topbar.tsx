@@ -21,7 +21,7 @@ interface TopbarProps {
 }
 
 export default function Topbar({ onToggleSidebar, onToggleMobileSidebar }: TopbarProps) {
-  const { currentUser, allUsers, switchUser, effectiveRole, isPreviewing, logout } = useAuth();
+  const { currentUser, allUsers, switchUser, effectiveRole, isPreviewing, logout, can } = useAuth();
   const { notifications, markNotificationRead, markAllNotificationsRead, tasks, documents, purchaseOrders, projects, bids } = useData();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
@@ -62,6 +62,12 @@ export default function Topbar({ onToggleSidebar, onToggleMobileSidebar }: Topba
       </Form>
 
       <div className="topbar-actions">
+        {can('nav.workshop') && (
+          <button className="topbar-customize-btn" onClick={() => navigate('/workshop')}>
+            <i className="bi bi-sliders" />
+            <span className="d-none d-xl-inline">Customize Demo</span>
+          </button>
+        )}
         <ViewAsMenu />
         <Dropdown align="end">
           <Dropdown.Toggle as="button" className="topbar-icon-btn topbar-bell" aria-label="Notifications">

@@ -37,11 +37,15 @@ export const DEMO_MODULES: DemoModule[] = [
 const STORAGE_KEY = 'greencore-demo-config-v1';
 
 interface StoredConfig {
+  workshopName: string;
+  workshopNotes: string;
   enabledModules: Record<string, boolean>;
   featureRequests: FeatureRequest[];
 }
 
 interface DemoConfigContextValue extends StoredConfig {
+  setWorkshopName: (name: string) => void;
+  setWorkshopNotes: (notes: string) => void;
   isModuleEnabled: (id: string) => boolean;
   setModuleEnabled: (id: string, enabled: boolean) => void;
   addFeatureRequest: (request: Omit<FeatureRequest, 'id' | 'createdAt'>) => void;
@@ -51,6 +55,8 @@ interface DemoConfigContextValue extends StoredConfig {
 }
 
 const defaultConfig = (): StoredConfig => ({
+  workshopName: 'Client discovery workspace',
+  workshopNotes: '',
   enabledModules: Object.fromEntries(DEMO_MODULES.map(module => [module.id, true])),
   featureRequests: [],
 });
@@ -60,6 +66,8 @@ function loadConfig(): StoredConfig {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '') as Partial<StoredConfig>;
     const defaults = defaultConfig();
     return {
+      workshopName: typeof saved.workshopName === 'string' ? saved.workshopName : defaults.workshopName,
+      workshopNotes: typeof saved.workshopNotes === 'string' ? saved.workshopNotes : defaults.workshopNotes,
       enabledModules: { ...defaults.enabledModules, ...(saved.enabledModules ?? {}) },
       featureRequests: Array.isArray(saved.featureRequests) ? saved.featureRequests : [],
     };
@@ -76,6 +84,14 @@ export function DemoConfigProvider({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
   }, [config]);
+
+  const setWorkshopName = useCallback((workshopName: string) => {
+    setConfig(previous => ({ ...previous, workshopName }));
+  }, []);
+
+  const setWorkshopNotes = useCallback((workshopNotes: string) => {
+    setConfig(previous => ({ ...previous, workshopNotes }));
+  }, []);
 
   const setModuleEnabled = useCallback((id: string, enabled: boolean) => {
     const module = DEMO_MODULES.find(item => item.id === id);
@@ -118,13 +134,18 @@ export function DemoConfigProvider({ children }: { children: React.ReactNode }) 
 
   const value = useMemo<DemoConfigContextValue>(() => ({
     ...config,
+    setWorkshopName,
+    setWorkshopNotes,
     isModuleEnabled: id => config.enabledModules[id] !== false,
     setModuleEnabled,
     addFeatureRequest,
     updateFeatureRequest,
     removeFeatureRequest,
     resetWorkshop,
-  }), [config, setModuleEnabled, addFeatureRequest, updateFeatureRequest, removeFeatureRequest, resetWorkshop]);
+  }), [
+    config, setWorkshopName, setWorkshopNotes, setModuleEnabled,
+    addFeatureRequest, updateFeatureRequest, removeFeatureRequest, resetWorkshop,
+  ]);
 
   return <DemoConfigContext.Provider value={value}>{children}</DemoConfigContext.Provider>;
 }

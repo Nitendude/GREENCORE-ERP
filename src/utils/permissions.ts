@@ -71,38 +71,38 @@ const matrix: Record<Role, Permission[]> = {
   ],
   'Project Manager': [
     'nav.dashboard', 'nav.projects', 'nav.gantt', 'nav.bidding', 'nav.costdb', 'nav.estimates', 'nav.tasks',
-    'nav.documents', 'nav.cad', 'nav.financials', 'nav.procurement', 'nav.inventory', 'nav.reports',
+    'nav.documents', 'nav.cad', 'nav.financials', 'nav.procurement', 'nav.inventory', 'nav.reports', 'nav.workshop',
     'projects.view', 'projects.create', 'projects.edit', 'projects.financials.view',
     'bidding.view', 'documents.upload', 'documents.delete', 'cad.upload', 'procurement.view',
     'procurement.manage', 'inventory.view', 'reports.export',
     'costdb.view', 'estimates.view',
   ],
   'Bidding Manager': [
-    'nav.dashboard', 'nav.bidding', 'nav.costdb', 'nav.estimates', 'nav.tasks', 'nav.documents', 'nav.reports',
+    'nav.dashboard', 'nav.bidding', 'nav.costdb', 'nav.estimates', 'nav.tasks', 'nav.documents', 'nav.reports', 'nav.workshop',
     'projects.view', 'bidding.view', 'bidding.manage', 'bidding.estimate.edit',
     'bidding.approve', 'bidding.convert', 'documents.upload', 'documents.delete', 'reports.export',
     'costdb.view', 'estimates.view', 'estimates.manage', 'estimates.convert',
   ],
   Estimator: [
-    'nav.dashboard', 'nav.bidding', 'nav.costdb', 'nav.estimates', 'nav.documents', 'nav.reports',
+    'nav.dashboard', 'nav.bidding', 'nav.costdb', 'nav.estimates', 'nav.documents', 'nav.reports', 'nav.workshop',
     'bidding.view', 'bidding.estimate.edit', 'documents.upload',
     'costdb.view', 'costdb.manage', 'estimates.view', 'estimates.manage',
   ],
   Finance: [
-    'nav.dashboard', 'nav.projects', 'nav.gantt', 'nav.bidding', 'nav.costdb', 'nav.estimates', 'nav.financials', 'nav.reports',
+    'nav.dashboard', 'nav.projects', 'nav.gantt', 'nav.bidding', 'nav.costdb', 'nav.estimates', 'nav.financials', 'nav.reports', 'nav.workshop',
     'projects.view', 'projects.financials.view', 'bidding.view', 'reports.export',
     'costdb.view', 'estimates.view',
   ],
   Procurement: [
-    'nav.dashboard', 'nav.projects', 'nav.gantt', 'nav.procurement', 'nav.inventory', 'nav.reports',
+    'nav.dashboard', 'nav.projects', 'nav.gantt', 'nav.procurement', 'nav.inventory', 'nav.reports', 'nav.workshop',
     'projects.view', 'procurement.view', 'procurement.manage', 'inventory.view', 'reports.export',
   ],
   'Project Staff': [
-    'nav.dashboard', 'nav.projects', 'nav.gantt', 'nav.tasks', 'nav.documents', 'nav.cad',
+    'nav.dashboard', 'nav.projects', 'nav.gantt', 'nav.tasks', 'nav.documents', 'nav.cad', 'nav.workshop',
     'projects.view', 'documents.upload', 'cad.upload',
   ],
   Viewer: [
-    'nav.dashboard', 'nav.projects', 'nav.gantt', 'nav.bidding', 'nav.reports',
+    'nav.dashboard', 'nav.projects', 'nav.gantt', 'nav.bidding', 'nav.reports', 'nav.workshop',
     'projects.view', 'bidding.view',
   ],
 };

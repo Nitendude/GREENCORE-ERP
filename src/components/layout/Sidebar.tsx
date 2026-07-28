@@ -13,6 +13,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', to: '/dashboard', icon: 'bi-speedometer2', permission: 'nav.dashboard' },
+  { label: 'Customize Demo', to: '/workshop', icon: 'bi-sliders', permission: 'nav.workshop' },
   { label: 'Projects', to: '/projects', icon: 'bi-kanban', permission: 'nav.projects', moduleId: 'projects' },
   { label: 'Gantt Viewer', to: '/gantt', icon: 'bi-bar-chart-steps', permission: 'nav.gantt', moduleId: 'gantt' },
   { label: 'Bidding', to: '/bidding', icon: 'bi-briefcase', permission: 'nav.bidding', moduleId: 'bidding' },
@@ -27,7 +28,6 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Reports', to: '/reports', icon: 'bi-bar-chart-line', permission: 'nav.reports', moduleId: 'reports' },
   { label: 'Branches', to: '/branches', icon: 'bi-diagram-3', permission: 'nav.branches', moduleId: 'branches' },
   { label: 'Access Preview', to: '/access', icon: 'bi-shield-lock', permission: 'nav.access' },
-  { label: 'Demo Workshop', to: '/workshop', icon: 'bi-sliders', permission: 'nav.workshop' },
   { label: 'Users', to: '/users', icon: 'bi-people', permission: 'nav.users' },
   { label: 'Settings', to: '/settings', icon: 'bi-gear', permission: 'nav.settings' },
 ];
